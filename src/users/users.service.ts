@@ -1,6 +1,8 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UUID } from 'typeorm/driver/mongodb/bson.typings';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UsersService {
@@ -15,8 +17,9 @@ export class UsersService {
     if (validateUsername) {
       throw new ConflictException('Username already exists');
     }
-    
-    const newUser = { id: Date.now(), ...createUserDto };
+
+    // id for test only
+    const newUser = { id: uuidv4(), ...createUserDto };
     this.users.push(newUser);
     return newUser;
   }
@@ -25,7 +28,7 @@ export class UsersService {
     return this.users;
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.users.find(user => user.id === id);
   }
 

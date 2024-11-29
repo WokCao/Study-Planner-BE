@@ -20,7 +20,7 @@ export class UsersController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return instanceToPlain(this.usersService.findOne(+id));
+    return instanceToPlain(this.usersService.findOne(id));
   }
 
   @Patch(':id')
