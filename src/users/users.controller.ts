@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -19,17 +19,27 @@ export class UsersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return instanceToPlain(this.usersService.findOne(id));
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return instanceToPlain(this.usersService.update(+id, updateUserDto));
+  @Put(':id')
+  update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
+    return instanceToPlain(this.usersService.update(id, updateUserDto));
+  }
+
+  @Patch(':id/fn-change')
+  changeFullname(@Param('id') id: number, @Body() changeFullname: Record<string, string>) {
+    return instanceToPlain(this.usersService.changeFullname(id, changeFullname.fullname));
+  }
+
+  @Patch(':id/pw-change')
+  changePassword(@Param('id') id: number, @Body() changePassword: Record<string, string>) {
+    return this.usersService.changePassword(id, changePassword.password);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return instanceToPlain(this.usersService.remove(+id));
+  remove(@Param('id') id: number) {
+    return instanceToPlain(this.usersService.remove(id));
   }
 }
