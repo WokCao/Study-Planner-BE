@@ -12,7 +12,13 @@ export class AuthController {
     async login(@Body() signInDto: LoginUserDto) {
         try {
             const user = await this.authService.login(signInDto);
-            return { access_token: user.access_token, statusCode: HttpStatus.OK };
+            return {
+                "data": {
+                    userInfo: user.loginResponseDto,
+                    "ref": `https://study-planner-be.onrender.com/api/v1/users/${user.id}`
+                },
+                "statusCode": 200,
+             };
         } catch (error) {
             if (error.status === 401) {
                 throw new UnauthorizedException(error.message);
