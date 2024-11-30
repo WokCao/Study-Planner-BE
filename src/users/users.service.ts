@@ -1,10 +1,11 @@
-import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcryptjs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
+import { LoginUserDto } from './dto/login-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -13,7 +14,28 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) { }
 
+  async login(loginUserDto: LoginUserDto): Promise<User> {
+    try {
+      const user = await this.userRepository.findOne({ where: { email: loginUserDto.email } });
+
+      if (user === null) {
+        throw new UnauthorizedException('Email doesn\'t exist');
+      }
+
+      if (user && await bcrypt.compare(loginUserDto.password, user.password)) {
+        return user;
+      }
+
+      throw new UnauthorizedException('Password is wrong');
+    } catch (error) {
+      if (error.status === 401) throw new UnauthorizedException(error.message);
+      throw new InternalServerErrorException('Database errors occur. Please try again...');
+    }
+  }
+
   async create(createUserDto: CreateUserDto): Promise<User> {
+    if (createUserDto.password !== createUserDto.confirmPassword) return null;
+
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
     const newUser: User = this.userRepository.create({
@@ -53,7 +75,7 @@ export class UsersService {
   }
 
   async changeFullname(id: number, fullname: string): Promise<User> {
-    const user: User = await this.userRepository.findOne({ where: { id }});
+    const user: User = await this.userRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
