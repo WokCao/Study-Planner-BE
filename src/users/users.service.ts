@@ -1,52 +1,68 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UUID } from 'typeorm/driver/mongodb/bson.typings';
-import { v4 as uuidv4 } from 'uuid';
+import * as bcrypt from 'bcryptjs';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from './entities/user.entity';
+import { NotFoundError } from 'rxjs';
 
 @Injectable()
 export class UsersService {
-  private users = []; // Mock database
-  create(createUserDto: CreateUserDto) {
-    const validateEmail = this.users.find(user => user.email === createUserDto.email);
-    if (validateEmail) {
-      throw new ConflictException('Email already exists');
-    }
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) { }
+  
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
-    const validateUsername = this.users.find(user => user.username === createUserDto.username);
-    if (validateUsername) {
-      throw new ConflictException('Username already exists');
-    }
+    const newUser: User = this.userRepository.create({
+      username: createUserDto.username,
+      email: createUserDto.email,
+      password: hashedPassword
+    })
 
-    // id for test only
-    const newUser = { id: uuidv4(), ...createUserDto };
-    this.users.push(newUser);
-    return newUser;
+    try {
+      return await this.userRepository.save(newUser);
+    } catch (error: any) {
+      if (error.code === '23505') {
+        // Duplicate username or email error code in PostgreSQL
+        throw new ConflictException(error.message);
+      } else {
+        throw new InternalServerErrorException('Database errors occur. Please try again...');
+      }
+    }
   }
 
-  findAll() {
-    return this.users;
+  async findAll(): Promise<User[]> {
+    return await this.userRepository.find();
   }
 
-  findOne(id: string) {
-    return this.users.find(user => user.id === id);
+  async findOne(id: number): Promise<User> {
+    return await this.userRepository.findOne({ where: { id: id }});
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    const userIndex = this.users.findIndex(user => user.id === id);
-    if (userIndex >= 0) {
-      this.users[userIndex] = { ...this.users[userIndex], ...updateUserDto };
-      return this.users[userIndex];
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    const result = await this.userRepository.update(id, updateUserDto);
+    
+    if (result.affected === 0) {
+        throw new NotFoundError(`User with ID ${id} not found`);
     }
-    return null;
+    
+    return this.userRepository.findOneBy({ id });
   }
 
-  remove(id: number) {
-    const userIndex = this.users.findIndex(user => user.id === id);
-    if (userIndex >= 0) {
-      const [removedUser] = this.users.splice(userIndex, 1);
-      return removedUser;
-    }
-    return null;
+  async changeFullname(id: number, fullname: string) {
+
+  }
+
+  async changePassword(id: number, password: string) {
+
+  }
+
+  async remove(id: number): Promise<void> {
+    const deleteResult = await this.userRepository.delete({ id });
+    console.log(deleteResult)
   }
 }
