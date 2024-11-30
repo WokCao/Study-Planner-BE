@@ -1,11 +1,10 @@
-import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcryptjs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
-import { NotFoundError } from 'rxjs';
 
 @Injectable()
 export class UsersService {
@@ -13,7 +12,7 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) { }
-  
+
   async create(createUserDto: CreateUserDto): Promise<User> {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
@@ -28,7 +27,7 @@ export class UsersService {
     } catch (error: any) {
       if (error.code === '23505') {
         // Duplicate username or email error code in PostgreSQL
-        throw new ConflictException(error.message);
+        throw new ConflictException('Duplicate username or email');
       } else {
         throw new InternalServerErrorException('Database errors occur. Please try again...');
       }
@@ -40,29 +39,49 @@ export class UsersService {
   }
 
   async findOne(id: number): Promise<User> {
-    return await this.userRepository.findOne({ where: { id: id }});
+    return await this.userRepository.findOne({ where: { id } });
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
     const result = await this.userRepository.update(id, updateUserDto);
-    
+
     if (result.affected === 0) {
-        throw new NotFoundError(`User with ID ${id} not found`);
+      throw new NotFoundException(`User with ID ${id} not found`);
     }
-    
+
     return this.userRepository.findOneBy({ id });
   }
 
-  async changeFullname(id: number, fullname: string) {
-
+  async changeFullname(id: number, fullname: string): Promise<User> {
+    const user: User = await this.userRepository.findOne({ where: { id }});
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    try {
+      await this.userRepository.update(id, { fullname: fullname });
+      return user;
+    } catch (error: any) {
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
-  async changePassword(id: number, password: string) {
+  async changePassword(id: number, password: string): Promise<string> {
+    const user: User = await this.userRepository.findOne({ where: { id } });
 
+    if (user && await bcrypt.compare(password, user.password)) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      try {
+        await this.userRepository.update(id, { password: hashedPassword });
+        return 'Successfully';
+      } catch (error: any) {
+        throw new InternalServerErrorException(error.message);
+      }
+    } else {
+      throw new NotFoundException(`User with ID ${id} not found or password is incorrect`)
+    }
   }
 
   async remove(id: number): Promise<void> {
-    const deleteResult = await this.userRepository.delete({ id });
-    console.log(deleteResult)
+    await this.userRepository.delete({ id });
   }
 }
