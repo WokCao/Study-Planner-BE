@@ -41,7 +41,8 @@ export class UsersService {
     const newUser: User = this.userRepository.create({
       username: createUserDto.username,
       email: createUserDto.email,
-      password: hashedPassword
+      password: hashedPassword,
+      fullname: createUserDto.fullname
     })
 
     try {
