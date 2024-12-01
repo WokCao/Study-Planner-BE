@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, NotImplementedException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, NotImplementedException, NotFoundException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -33,13 +33,44 @@ export class UsersController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return instanceToPlain(this.usersService.findOne(id));
+  async findOne(@Param('id') userId: number) {
+    try {
+      const user: User = await this.usersService.findOne(userId);
+      const { id, password, updatedAt, createdAt, ...response } = user;
+      return {
+        "data": {
+          response,
+          "ref": `https://study-planner-be.onrender.com/api/v1/users/${userId}`
+        },
+        "statusCode": 200,
+        "message": 'Successfully'
+      }
+    } catch (error: any) {
+      throw new NotFoundException(`User with id=${userId} can't be found`);
+    }
   }
 
   @Put(':id')
-  update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
-    return instanceToPlain(this.usersService.update(id, updateUserDto));
+  async update(@Param('id') userId: number, @Body() updateUserDto: UpdateUserDto) {
+    const userExist: User = await this.usersService.findOne(userId);
+    if (!userExist) {
+      throw new NotFoundException(`User with id=${userId} can't be found`);
+    }
+
+    try {
+      const user: User = await this.usersService.update(userId, updateUserDto);
+      const { id, password, updatedAt, createdAt, ...response } = user;
+      return {
+        "data": {
+          response,
+          "ref": `https://study-planner-be.onrender.com/api/v1/users/${userId}`
+        },
+        "statusCode": 200,
+        "message": 'All user information has been successfully updated'
+      }
+    } catch (error: any) {
+      throw new NotImplementedException(`Information of user with id=${userId} can't be updated`);
+    }
   }
 
   @Patch(':id/fn-change')
