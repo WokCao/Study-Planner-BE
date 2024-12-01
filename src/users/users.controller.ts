@@ -3,14 +3,24 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { instanceToPlain } from 'class-transformer';
+import { User } from './entities/user.entity';
 
 @Controller('api/v1/users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return instanceToPlain(this.usersService.create(createUserDto));
+  async create(@Body() createUserDto: CreateUserDto) {
+    const createdUser: User = await this.usersService.create(createUserDto);
+    const { id, password, updatedAt, createdAt,  ...response } = createdUser;
+    return {
+      "data": {
+        response,
+        "ref": `https://study-planner-be.onrender.com/api/v1/users/${createdUser.id}`
+      },
+      "statusCode": 201,
+      "message": "Account has been successfully created"
+    }
   }
 
   @Get()
