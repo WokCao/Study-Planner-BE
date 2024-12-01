@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, NotImplementedException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -7,19 +7,23 @@ import { User } from './entities/user.entity';
 
 @Controller('api/v1/users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
-    const createdUser: User = await this.usersService.create(createUserDto);
-    const { id, password, updatedAt, createdAt,  ...response } = createdUser;
-    return {
-      "data": {
-        response,
-        "ref": `https://study-planner-be.onrender.com/api/v1/users/${createdUser.id}`
-      },
-      "statusCode": 201,
-      "message": "Account has been successfully created"
+    try {
+      const createdUser: User = await this.usersService.create(createUserDto);
+      const { id, password, updatedAt, createdAt, ...response } = createdUser;
+      return {
+        "data": {
+          response,
+          "ref": `https://study-planner-be.onrender.com/api/v1/users/${createdUser.id}`
+        },
+        "statusCode": 201,
+        "message": 'Account has been successfully created'
+      }
+    } catch (error: any) {
+      throw new NotImplementedException("Account hasn't been created");
     }
   }
 
