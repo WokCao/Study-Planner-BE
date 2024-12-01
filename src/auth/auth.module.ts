@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from 'src/users/users.module';
 import * as dotenv from 'dotenv';
+import { RedisModule } from 'src/redis/redis.module';
 dotenv.config();
 
 @Module({
@@ -13,8 +14,9 @@ dotenv.config();
       secret: process.env.JWT_CONSTANT,
       signOptions: { expiresIn: '120s' },
     }),
+    RedisModule
   ],
   controllers: [AuthController],
-  providers: [AuthService]
+  providers: [AuthService],
 })
 export class AuthModule {}
