@@ -23,8 +23,10 @@ export class User {
     avatarUrl: string;
 
     @CreateDateColumn()
+    @Exclude()
     createdAt: Date;
 
     @UpdateDateColumn()
+    @Exclude()
     updatedAt: Date;
 }

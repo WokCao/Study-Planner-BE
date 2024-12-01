@@ -88,14 +88,14 @@ export class UsersService {
     }
   }
 
-  async changePassword(id: number, password: string): Promise<string> {
+  async changePassword(id: number, password: string): Promise<User> {
     const user: User = await this.userRepository.findOne({ where: { id } });
 
     if (user && await bcrypt.compare(password, user.password)) {
       const hashedPassword = await bcrypt.hash(password, 10);
       try {
         await this.userRepository.update(id, { password: hashedPassword });
-        return 'Successfully';
+        return user;
       } catch (error: any) {
         throw new InternalServerErrorException(error.message);
       }
