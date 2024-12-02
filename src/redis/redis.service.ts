@@ -1,4 +1,5 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, NotImplementedException, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import e from 'express';
 import Redis from 'ioredis';
 
 @Injectable()
@@ -6,17 +7,20 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     private client: Redis;
 
     async onModuleInit() {
-        this.client = new Redis({
-            host: process.env.REDIS_HOST || '127.0.0.1',
-            port: parseInt(process.env.REDIS_PORT || '6379', 10),
-            username: process.env.REDIS_USERNAME,
-            password: process.env.REDIS_PASSWORD,
-            maxRetriesPerRequest: null,
-        });
+        if (!this.client) {
+            this.client = new Redis(`rediss://${process.env.REDIS_USERNAME}:${process.env.REDIS_PASSWORD}@${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`);
+    
+            this.client.on('error', () => { console.log('error')} )
+            this.client.on('connect', () => { console.log('connected')} )
+            this.client.on('ready', () => { console.log('ready')} )
+
+        }
     }
 
     async onModuleDestroy() {
-        await this.client.quit();
+        if (this.client) {
+            await this.client.quit();
+        }
     }
 
     getClient(): Redis {
@@ -24,7 +28,11 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
 
     async saveToken(userId: number, token: string, ttl: number) {
-        await this.client.set(`token:${userId}`, token, 'EX', ttl);
+        try {
+            await this.client.set(`token:${userId}`, token, 'EX', ttl);
+        } catch (error: any) {
+            throw new NotImplementedException('Cannot set token to Redis');
+        }
     }
 
     async blacklistToken(token: string, ttl: number) {
