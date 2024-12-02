@@ -12,7 +12,7 @@ import {
   UnauthorizedException,
   Headers
 } from '@nestjs/common';
-// import { AuthGuard } from './auth.guard';
+import { AuthenGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 import { LoginUserDto } from 'src/users/dto/login-user.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -65,7 +65,7 @@ export class AuthController {
     }
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthenGuard)
   @Get('profile')
   getProfile(@Request() req) {
     return req.user;

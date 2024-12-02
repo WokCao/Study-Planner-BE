@@ -10,7 +10,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 @Injectable()
-export class AuthGuard implements CanActivate {
+export class AuthenGuard implements CanActivate {
     constructor(private jwtService: JwtService) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
