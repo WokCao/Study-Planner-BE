@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, NotImplementedException, NotFoundException, Header, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, NotImplementedException, NotFoundException, Header, Headers, UnauthorizedException, InternalServerErrorException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -22,9 +22,10 @@ export class UsersController {
         message: 'Account has been successfully created'
       }
     } catch (error: any) {
-      return {
-        statusCode: error.statusCode,
-        message: error.message
+      if (error.statusCode === 409) {
+        throw new UnauthorizedException(error.message);
+      } else if (error.statusCode === 500) {
+        throw new InternalServerErrorException(error.message);
       }
     }
   }
@@ -48,10 +49,7 @@ export class UsersController {
         "message": 'Successfully'
       }
     } catch (error: any) {
-      return {
-        "statusCode": 404,
-        "message": `Account with id=${userId} can't be found`
-      }
+      throw new NotFoundException(`Account with id=${userId} can't be found`);
     }
   }
 
@@ -59,10 +57,7 @@ export class UsersController {
   async update(@Param('id') userId: number, @Body() updateUserDto: UpdateUserDto) {
     const userExist: User = await this.usersService.findOne(userId);
     if (!userExist) {
-      return {
-        "statusCode": 404,
-        "message": `Account with id=${userId} can't be found`
-      }
+      throw new NotFoundException(`Account with id=${userId} can't be found`);
     }
 
     try {
@@ -77,10 +72,7 @@ export class UsersController {
         "message": 'All account information has been successfully updated'
       }
     } catch (error: any) {
-      return {
-        "statusCode": 501,
-        "message": `Information of account with id=${userId} can't be updated`
-      }
+      throw new NotImplementedException(`Information of account with id=${userId} can't be updated`);
     }
   }
 
@@ -88,10 +80,7 @@ export class UsersController {
   async changeFullname(@Param('id') userId: number, @Body() changeFullname: Record<string, string>) {
     const userExist: User = await this.usersService.findOne(userId);
     if (!userExist) {
-      return {
-        "statusCode": 404,
-        "message": `Account with id=${userId} can't be found`
-      }
+      throw new NotFoundException(`Account with id=${userId} can't be found`);
     }
 
     try {
@@ -106,10 +95,7 @@ export class UsersController {
         "message": "Account's fullname has been successfully updated"
       }
     } catch (error: any) {
-      return {
-        "statusCode": 501,
-        "message": `Fullname of account with id=${userId} can't be updated`
-      }
+      throw new NotImplementedException(`Fullname of account with id=${userId} can't be updated`);
     }
   }
 
@@ -117,10 +103,7 @@ export class UsersController {
   async changePassword(@Param('id') userId: number, @Body() changePassword: Record<string, string>) {
     const userExist: User = await this.usersService.findOne(userId);
     if (!userExist) {
-      return {
-        "statusCode": 404,
-        "message": `Account with id=${userId} can't be found`
-      }
+      throw new NotFoundException(`Account with id=${userId} can't be found`);
     }
 
     try {
@@ -135,10 +118,7 @@ export class UsersController {
         "message": "Account's password has been successfully updated"
       }
     } catch (error: any) {
-      return {
-        "statusCode": 501,
-        "message": `Password of account with id=${userId} can't be updated`
-      }
+      throw new NotImplementedException(`Password of account with id=${userId} can't be updated`);
     }
   }
 
@@ -151,10 +131,7 @@ export class UsersController {
         "message": `User with id=${id} has been successfully deleted`
       }
     } catch (error: any) {
-      return {
-        "statusCode": 501,
-        "message": `Account with id=${id} can't be deleted`
-      }
+      throw new NotImplementedException(`Account with id=${id} can't be deleted`);
     }
 
   }
