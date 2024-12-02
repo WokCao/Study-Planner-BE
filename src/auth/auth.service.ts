@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotImplementedException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { LoginUserDto } from 'src/users/dto/login-user.dto';
 import { UsersService } from 'src/users/users.service';
@@ -34,13 +34,17 @@ export class AuthService {
             if (error instanceof UnauthorizedException) {
                 throw new UnauthorizedException(error.message);
             }
-            throw new InternalServerErrorException(error);
+            throw new InternalServerErrorException(error.message);
         }
     }
 
     async logout(token: string): Promise<void> {
         const decoded = this.jwtService.decode(token) as any;
         const ttl = Math.floor((decoded.exp * 1000 - Date.now()) / 1000);
-        await this.redisService.blacklistToken(token, ttl);
+        try {
+            await this.redisService.blacklistToken(token, ttl);
+        } catch (error: any) {
+            throw new NotImplementedException(error.message);
+        }
     }
 }
