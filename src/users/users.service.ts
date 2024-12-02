@@ -34,6 +34,16 @@ export class UsersService {
   }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
+    const validateEmail: User = await this.userRepository.findOne({ where: { email: createUserDto.email } });
+    if (validateEmail) {
+      throw new ConflictException(`Email: ${createUserDto.email} has been used. Please try another email`);
+    }
+
+    const validateUsername: User = await this.userRepository.findOne({ where: { username: createUserDto.username } });
+    if (validateUsername) {
+      throw new ConflictException(`Username: ${createUserDto.username} has been used. Please try another username`);
+    }
+
     if (createUserDto.password !== createUserDto.confirmPassword) return null;
 
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
@@ -48,12 +58,7 @@ export class UsersService {
     try {
       return await this.userRepository.save(newUser);
     } catch (error: any) {
-      if (error.code === '23505') {
-        // Duplicate username or email error code in PostgreSQL
-        throw new ConflictException('Duplicate username or email');
-      } else {
-        throw new InternalServerErrorException('Database errors occur. Please try again...');
-      }
+      throw new InternalServerErrorException('Database errors occur. Please try again...');
     }
   }
 

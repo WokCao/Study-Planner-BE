@@ -14,17 +14,17 @@ export class UsersController {
       const createdUser: User = await this.usersService.create(createUserDto);
       const { id, password, updatedAt, createdAt, ...response } = createdUser;
       return {
-        "data": {
+        data: {
           response,
-          "ref": `https://study-planner-be.onrender.com/api/v1/users/${createdUser.id}`
+          ref: `https://study-planner-be.onrender.com/api/v1/users/${createdUser.id}`
         },
-        "statusCode": 201,
-        "message": 'Account has been successfully created'
+        statusCode: 201,
+        message: 'Account has been successfully created'
       }
     } catch (error: any) {
       return {
-        "statusCode": 501,
-        "message": "Account hasn't been created"
+        statusCode: error.statusCode,
+        message: error.message
       }
     }
   }
