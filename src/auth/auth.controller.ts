@@ -9,31 +9,48 @@ export class AuthController {
 
     @HttpCode(HttpStatus.OK)
     @Post('login')
-    async login(@Body() signInDto: LoginUserDto) {
+    async login(@Body() signInDto: LoginUserDto): Promise<{ data?: any, statusCode: number, message: string }> {
         try {
             const user = await this.authService.login(signInDto);
             return {
-                "data": {
+                data: {
                     userInfo: user.loginResponseDto,
-                    "ref": `https://study-planner-be.onrender.com/api/v1/users/${user.id}`
+                    ref: `https://study-planner-be.onrender.com/api/v1/users/${user.id}`
                 },
-                "statusCode": 200,
+                statusCode: 200,
+                message: 'Successfully'
             };
         } catch (error) {
             if (error.status === 401) {
-                throw new UnauthorizedException(error.message);
+                return {
+                    statusCode: 401,
+                    message: error.message
+                }
             } else {
-                throw new InternalServerErrorException(error.message);
+                return {
+                    statusCode: 500,
+                    message: 'Our service are being maintained! Please try later'
+                }
             }
         }
     }
 
     @HttpCode(HttpStatus.OK)
     @Post('logout')
-    async logout(@Headers('Authorization') authHeader: string): Promise<{ message: string }> {
+    async logout(@Headers('Authorization') authHeader: string): Promise<{ statusCode: number, message: string }> {
         const token = authHeader.replace('Bearer ', '');
-        await this.authService.logout(token);
-        return { message: 'Logged out successfully' };
+        try {
+            await this.authService.logout(token);
+            return {
+                statusCode: 200,
+                message: 'Logged out successfully'
+            };
+        } catch (error: any) {
+            return {
+                statusCode: 501,
+                message: 'Failed to log out! Try again'
+            }
+        }
     }
 
     @UseGuards(AuthGuard)
