@@ -12,10 +12,10 @@ export class AuthController {
     async login(@Body() signInDto: LoginUserDto): Promise<{ data?: any, statusCode: number, message: string }> {
         try {
             const user = await this.authService.login(signInDto);
-            console.log('passed')
             return {
                 data: {
                     userInfo: user.loginResponseDto,
+                    token: user.token,
                     ref: `https://study-planner-be.onrender.com/api/v1/users/${user.id}`
                 },
                 statusCode: 200,

@@ -8,7 +8,7 @@ import { RedisService } from 'src/redis/redis.service';
 @Injectable()
 export class AuthService {
     constructor(private usersService: UsersService, private jwtService: JwtService, private readonly redisService: RedisService) { }
-    async login(loginUserDto: LoginUserDto): Promise<{ loginResponseDto: LoginResponseDto, id: number }> {
+    async login(loginUserDto: LoginUserDto): Promise<{ loginResponseDto: LoginResponseDto, token: string, id: number }> {
         try {
             const user = await this.usersService.login(loginUserDto);
 
@@ -19,12 +19,12 @@ export class AuthService {
 
             return {
                 loginResponseDto: {
-                    token,
                     username: result.username,
                     email: result.email,
                     fullname: result.fullname,
                     avatarUrl: result.avatarUrl
                 },
+                token,
                 id: result.id
             }
         } catch (error: any) {
