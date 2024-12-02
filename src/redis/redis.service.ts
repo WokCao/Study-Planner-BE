@@ -1,5 +1,4 @@
 import { Injectable, NotImplementedException, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import e from 'express';
 import Redis from 'ioredis';
 
 @Injectable()
