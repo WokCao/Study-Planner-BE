@@ -10,6 +10,7 @@ import {
   Post,
   Req,
   UnauthorizedException,
+  Headers
 } from '@nestjs/common';
 // import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
