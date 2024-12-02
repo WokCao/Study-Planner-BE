@@ -31,12 +31,16 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         try {
             await this.client.set(`token:${userId}`, token, 'EX', ttl);
         } catch (error: any) {
-            throw new NotImplementedException('Cannot set token to Redis');
+            throw new NotImplementedException('Cannot save token to Redis');
         }
     }
 
     async blacklistToken(token: string, ttl: number) {
-        await this.client.set(`blacklist:${token}`, 'blacklisted', 'EX', ttl);
+        try {
+            await this.client.set(`blacklist:${token}`, 'blacklisted', 'EX', ttl);
+        } catch (error: any) {
+            throw new NotImplementedException('Cannot save token to blacklist');
+        }
     }
 
     async isTokenBlacklisted(token: string): Promise<boolean> {
