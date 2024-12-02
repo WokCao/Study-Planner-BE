@@ -12,6 +12,7 @@ export class AuthController {
     async login(@Body() signInDto: LoginUserDto): Promise<{ data?: any, statusCode: number, message: string }> {
         try {
             const user = await this.authService.login(signInDto);
+            console.log('passed')
             return {
                 data: {
                     userInfo: user.loginResponseDto,
@@ -22,15 +23,9 @@ export class AuthController {
             };
         } catch (error) {
             if (error.status === 401) {
-                return {
-                    statusCode: 401,
-                    message: error.message
-                }
+                throw new UnauthorizedException(error.message);
             } else {
-                return {
-                    statusCode: 500,
-                    message: 'Our service are being maintained! Please try later'
-                }
+                throw new InternalServerErrorException('Our service is being maintained! Please try later.');
             }
         }
     }
@@ -46,10 +41,7 @@ export class AuthController {
                 message: 'Logged out successfully'
             };
         } catch (error: any) {
-            return {
-                statusCode: 501,
-                message: 'Failed to log out! Try again'
-            }
+            throw new InternalServerErrorException('Failed to log out! Try again.');
         }
     }
 
