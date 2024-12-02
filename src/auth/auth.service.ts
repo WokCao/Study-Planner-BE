@@ -11,9 +11,6 @@ export class AuthService {
     async login(loginUserDto: LoginUserDto): Promise<{ loginResponseDto: LoginResponseDto, id: number }> {
         try {
             const user = await this.usersService.login(loginUserDto);
-            if (!user) {
-                throw new UnauthorizedException('Invalid email or password');
-            }
 
             const { password, ...result } = user;
             const payload = { sub: result.id, username: result.username, email: result.email };
