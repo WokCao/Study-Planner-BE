@@ -71,16 +71,17 @@ export class AuthController {
     return req.user;
   }
 
-  @Get('google')
   @UseGuards(AuthGuard('google'))
+  @Get('google')
   async googleAuth(@Req() req) {
-    // Initiates Google OAuth flow
+    
   }
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   googleAuthRedirect(@Req() req) {
     // Handle Google redirect and return user info
+    console.log(req.user)
     return {
       message: 'Google authentication successful',
       user: req.user,
