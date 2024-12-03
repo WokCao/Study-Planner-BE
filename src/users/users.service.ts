@@ -33,27 +33,39 @@ export class UsersService {
     }
   }
 
+  async loginWithGoogle(email: string): Promise<User> {
+    try {
+      const user = await this.userRepository.findOne({ where: { email, isGoogleAccount: true } });
+
+      if (user === null) {
+        throw new UnauthorizedException('Email doesn\'t exist');
+      }
+
+      return user;
+    } catch (error) {
+      if (error.status === 401) throw new UnauthorizedException(error.message);
+      throw new InternalServerErrorException('Database errors occur. Please try again...');
+    }
+  }
+
   async create(createUserDto: CreateUserDto): Promise<User> {
     const validateEmail: User = await this.userRepository.findOne({ where: { email: createUserDto.email } });
     if (validateEmail) {
       throw new ConflictException(`Email: ${createUserDto.email} has been used. Please try another email`);
     }
 
-    const validateUsername: User = await this.userRepository.findOne({ where: { username: createUserDto.username } });
-    if (validateUsername) {
-      throw new ConflictException(`Username: ${createUserDto.username} has been used. Please try another username`);
-    }
+    const { email, fullname, password, confirmPassword, googleAccount, avatarUrl } = createUserDto;
+    if (password && password !== confirmPassword) return null;
 
-    if (createUserDto.password !== createUserDto.confirmPassword) return null;
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
 
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-
-    const newUser: User = this.userRepository.create({
-      username: createUserDto.username,
-      email: createUserDto.email,
-      password: hashedPassword,
-      fullname: createUserDto.fullname
-    })
+    const newUser = this.userRepository.create({
+      email,
+      fullname,
+      ...(avatarUrl && { avatarUrl: avatarUrl }),
+      ...(googleAccount && { isGoogleAccount: true }),
+      ...(hashedPassword && { password: hashedPassword }),
+    });
 
     try {
       return await this.userRepository.save(newUser);
