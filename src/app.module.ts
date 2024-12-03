@@ -19,7 +19,7 @@ import { RedisModule } from './redis/redis.module';
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
       entities: [User],
-      synchronize: true,
+      synchronize: false,
     }),
     AuthModule,
     RedisModule
