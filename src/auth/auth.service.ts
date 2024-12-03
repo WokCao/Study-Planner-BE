@@ -82,10 +82,12 @@ export class AuthService {
     async logout(token: string): Promise<void> {
         const decoded = this.jwtService.decode(token) as any;
         const ttl = Math.floor((decoded.exp * 1000 - Date.now()) / 1000);
-        try {
-            await this.redisService.blacklistToken(token, ttl);
-        } catch (error: any) {
-            throw new NotImplementedException(error.message);
+        if (ttl > 0) {
+            try {
+                await this.redisService.blacklistToken(token, ttl);
+            } catch (error: any) {
+                throw new NotImplementedException(error.message);
+            }
         }
     }
 }
