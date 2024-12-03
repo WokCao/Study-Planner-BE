@@ -6,10 +6,7 @@ export class User {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ unique: true })
-    username: string;
-
-    @Column()
+    @Column({ default: null })
     @Exclude()
     password: string;
 
@@ -21,6 +18,9 @@ export class User {
 
     @Column({ default: null })
     avatarUrl: string;
+
+    @Column({ default: false })
+    isGoogleAccount: boolean;
 
     @CreateDateColumn()
     @Exclude()
