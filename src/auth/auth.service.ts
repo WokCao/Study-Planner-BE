@@ -4,6 +4,8 @@ import { LoginUserDto } from 'src/users/dto/login-user.dto';
 import { UsersService } from 'src/users/users.service';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { RedisService } from 'src/redis/redis.service';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { GoogleAccountInfo } from './dto/google-account-info.dto';
 
 @Injectable()
 export class AuthService {
@@ -13,13 +15,12 @@ export class AuthService {
             const user = await this.usersService.login(loginUserDto);
 
             const { password, ...result } = user;
-            const payload = { sub: result.id, username: result.username, email: result.email };
+            const payload = { sub: result.id, fullname: result.fullname, email: result.email };
             const token = await this.jwtService.signAsync(payload);
             await this.redisService.saveToken(user.id, token, 120);
 
             return {
                 loginResponseDto: {
-                    username: result.username,
                     email: result.email,
                     fullname: result.fullname,
                     avatarUrl: result.avatarUrl
@@ -27,6 +28,49 @@ export class AuthService {
                 token,
                 id: result.id
             }
+        } catch (error: any) {
+            if (error instanceof UnauthorizedException) {
+                throw new UnauthorizedException(error.message);
+            }
+            throw new InternalServerErrorException(error.message);
+        }
+    }
+
+    async signupWithGoogle(userInfo: GoogleAccountInfo) {
+        try {
+            const createUserDto: CreateUserDto = {
+                email: userInfo.email,
+                fullname: userInfo.name,
+                googleAccount: true,
+                avatarUrl: userInfo.picture
+            }
+            return await this.usersService.create(createUserDto);
+        } catch (error: any) {
+            if (error instanceof UnauthorizedException) {
+                throw new UnauthorizedException(error.message);
+            }
+            throw new InternalServerErrorException(error.message);
+        }
+    }
+
+    async loginWithGoogle(email: string): Promise<{ loginResponseDto: LoginResponseDto, token: string, id: number }> {
+        try {
+            const user = await this.usersService.loginWithGoogle(email);
+            const { password, ...result } = user;
+            const payload = { sub: result.id, fullname: result.fullname, email: result.email };
+            const token = await this.jwtService.signAsync(payload);
+            await this.redisService.saveToken(user.id, token, 120);
+
+            const response = {
+                loginResponseDto: {
+                    email: result.email,
+                    fullname: result.fullname,
+                    avatarUrl: result.avatarUrl
+                },
+                token,
+                id: result.id
+            }
+            return response;
         } catch (error: any) {
             if (error instanceof UnauthorizedException) {
                 throw new UnauthorizedException(error.message);
