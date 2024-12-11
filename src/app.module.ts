@@ -7,6 +7,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './users/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { RedisModule } from './redis/redis.module';
+import { TasksController } from './tasks/tasks.controller';
+import { TasksModule } from './tasks/tasks.module';
 
 @Module({
   imports: [UsersModule, 
@@ -22,9 +24,10 @@ import { RedisModule } from './redis/redis.module';
       synchronize: process.env.NODE_ENV === 'development',
     }),
     AuthModule,
-    RedisModule
+    RedisModule,
+    TasksModule
   ],
-  controllers: [AppController],
+  controllers: [AppController, TasksController],
   providers: [AppService],
 })
 export class AppModule {}
