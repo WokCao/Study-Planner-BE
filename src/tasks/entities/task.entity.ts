@@ -5,10 +5,10 @@ import { User } from '../../users/entities/user.entity';
 @Entity('tasks')
 export class Task {
     @PrimaryGeneratedColumn()
-    task_id: number;
+    taskId: number;
 
     @ManyToOne(() => User, (user) => user.id, { onDelete: 'CASCADE' })
-    user_id: number;
+    userId: number;
 
     @Column({ type: 'varchar', length: 255 })
     name: string;
@@ -23,10 +23,10 @@ export class Task {
         default: 'Medium',
         enum: ['High', 'Medium', 'Low']
     })
-    priority_level: 'High' | 'Medium' | 'Low';
+    priorityLevel: 'High' | 'Medium' | 'Low';
 
     @Column({ type: 'interval', nullable: true })
-    estimated_time?: string;
+    estimatedTime?: string;
 
     @Column({
         type: 'varchar',
