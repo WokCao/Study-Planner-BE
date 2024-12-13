@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UnauthorizedException, InternalServerErrorException, BadRequestException, ValidationPipe, Get, Param, NotFoundException, UseGuards, Req } from '@nestjs/common';
+import { Controller, Post, Body, UnauthorizedException, InternalServerErrorException, BadRequestException, ValidationPipe, Get, Param, NotFoundException, UseGuards, Req, Query } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { Task } from './entities/task.entity';
@@ -35,8 +35,8 @@ export class TasksController {
 
 	@UseGuards(AuthenGuard)
 	@Get('user')
-	findAll(@Req() req: any) { 
-		return this.tasksService.findAll(req.user.sub);
+	findAll(@Query('page') page: number = 1, @Query('limit') limit: number = 10, @Req() req: any) { 
+		return this.tasksService.findAll(req.user.sub, page, limit);
 	}
 
 	@UseGuards(AuthenGuard)
