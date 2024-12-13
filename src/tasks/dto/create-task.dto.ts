@@ -1,9 +1,6 @@
 import { IsString, IsOptional, IsEnum, IsDateString, IsNumber } from 'class-validator';
 
 export class CreateTaskDto {
-	@IsNumber()
-	userId: number;
-
   @IsString()
   name: string;
 

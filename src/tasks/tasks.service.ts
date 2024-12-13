@@ -14,9 +14,7 @@ export class TasksService {
 		private readonly userRepository: Repository<User>,
 	) { }
 
-	async create(createTaskDto: CreateTaskDto): Promise<Task> {
-		const { userId, ...taskData } = createTaskDto;
-
+	async create(createTaskDto: CreateTaskDto, userId: number): Promise<Task> {
 		// Fetch the User entity using user_id
 		const user = await this.userRepository.findOne({ where: { id: userId } });
 		if (!user) {
@@ -25,7 +23,7 @@ export class TasksService {
 
 		// Create the new task and assign the user relation
 		const newTask = this.taskRepository.create({
-			...taskData,
+			...createTaskDto,
 			user,
 		});
 

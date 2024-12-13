@@ -8,10 +8,11 @@ import { AuthenGuard } from '../auth/auth.guard';
 export class TasksController {
   constructor(private readonly tasksService: TasksService) { }
 
+	@UseGuards(AuthenGuard)
 	@Post()
-	async create(@Body(new ValidationPipe()) createTaskDto: CreateTaskDto) {
+	async create(@Body(new ValidationPipe()) createTaskDto: CreateTaskDto, @Req() req: any) {
 		try {
-			const createdTask: Task = await this.tasksService.create(createTaskDto);
+			const createdTask: Task = await this.tasksService.create(createTaskDto, req.user.sub);
 			const { user, updatedAt, createdAt, ...response } = createdTask;
 			return {
 				data: {
