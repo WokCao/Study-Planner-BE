@@ -8,7 +8,7 @@ export class Task {
     taskId: number;
 
     @ManyToOne(() => User, (user) => user.id, { onDelete: 'CASCADE' })
-    userId: number;
+    user: User;
 
     @Column({ type: 'varchar', length: 255 })
     name: string;
