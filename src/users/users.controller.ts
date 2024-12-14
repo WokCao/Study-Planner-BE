@@ -65,7 +65,7 @@ export class UsersController {
         "message": 'All account information has been successfully updated'
       }
     } catch (error: any) {
-      throw new ForbiddenException(`Can't update user`);
+      throw error;
     }
   }
 

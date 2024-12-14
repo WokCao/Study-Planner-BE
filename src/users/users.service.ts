@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcryptjs';
@@ -91,15 +91,23 @@ export class UsersService {
     }
 
     if (updateUserDto.password) {
-        updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+			if (!updateUserDto.oldPassword) {
+				throw new BadRequestException(`Old password not provided`);
+			}
+
+			if (!(await bcrypt.compare(updateUserDto.oldPassword, user.password))) {
+				throw new BadRequestException(`Old password does not match`);
+			}
+
+      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
     }
 
     const result = this.userRepository.merge(user, updateUserDto);
 
     try {
-        return await this.userRepository.save(result);
+      return await this.userRepository.save(result);
     } catch (error) {
-        throw new ForbiddenException(`Error updating user: ${error.message}`);
+      throw new ForbiddenException(`Error updating user: ${error.message}`);
     }
   }
 
