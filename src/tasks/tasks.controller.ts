@@ -55,7 +55,7 @@ export class TasksController {
 				"message": 'Successfully'
 			}
 		} catch (error: any) {
-			throw new NotFoundException(`Task with taskId=${taskId} and userId=${req.user.sub} can't be found`);
+			throw new NotFoundException(`Task with id=${taskId} can't be found for the specified user`);
 		}
 	}
 

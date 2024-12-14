@@ -19,7 +19,7 @@ export class TasksService {
 		// Fetch the User entity using user_id
 		const user = await this.userRepository.findOne({ where: { id: userId } });
 		if (!user) {
-			throw new NotFoundException(`User with id=${userId} not found`);
+			throw new NotFoundException(`User not found`);
 		}
 
 		// Create the new task and assign the user relation
@@ -61,7 +61,7 @@ export class TasksService {
         const task = await this.findOne(taskId, userId);
 
         if (!task) {
-            throw new NotFoundException(`Task with taskId=${taskId} and userId=${userId} can't be found`);
+            throw new NotFoundException(`Task with id=${taskId} can't be found for the specified user`);
         }
 
         // Merge the updates into the task
