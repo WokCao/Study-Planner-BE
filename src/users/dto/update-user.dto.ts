@@ -1,12 +1,15 @@
-import { IsNotEmpty } from "class-validator";
+import { IsOptional, IsString } from "class-validator";
 
 export class UpdateUserDto {
-    @IsNotEmpty()
+    @IsOptional()
+    @IsString()
     fullname: string;
 
-    @IsNotEmpty()
+    @IsOptional()
+    @IsString()
     password: string;
 
-    @IsNotEmpty()
-    avatar: string
+    @IsOptional()
+    @IsString()
+    avatar: string;
 }

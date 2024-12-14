@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, NotImplementedException, NotFoundException, Header, Headers, UnauthorizedException, InternalServerErrorException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, Put, NotFoundException, UnauthorizedException, InternalServerErrorException, UseGuards, Req, ValidationPipe, ForbiddenException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { AuthenGuard } from '../auth/auth.guard';
 
 @Controller('api/v1/users')
 export class UsersController {
@@ -30,109 +31,53 @@ export class UsersController {
     }
   }
 
+	@UseGuards(AuthenGuard)
   @Get()
-  findAll() {
-    return this.usersService.findAll();
-  }
-
-  @Get(':id')
-  async findOne(@Param('id') userId: number) {
+  async findOne(@Req() req: any) {
     try {
-      const user: User = await this.usersService.findOne(userId);
+      const user: User = await this.usersService.findOne(req.user.sub);
       const { id, password, updatedAt, createdAt, ...response } = user;
       return {
         "data": {
-          response,
-          "ref": `https://study-planner-be.onrender.com/api/v1/users/${userId}`
+          response
         },
         "statusCode": 200,
         "message": 'Successfully'
       }
     } catch (error: any) {
-      throw new NotFoundException(`Account with id=${userId} can't be found`);
+      throw new NotFoundException(`User can't be found`);
     }
   }
 
-  @Put(':id')
-  async update(@Param('id') userId: number, @Body() updateUserDto: UpdateUserDto) {
-    const userExist: User = await this.usersService.findOne(userId);
-    if (!userExist) {
-      throw new NotFoundException(`Account with id=${userId} can't be found`);
-    }
-
+	@UseGuards(AuthenGuard)
+  @Put()
+  async update(@Req() req: any, @Body(new ValidationPipe({ whitelist: true })) updateUserDto: UpdateUserDto) {
     try {
-      const user: User = await this.usersService.update(userId, updateUserDto);
+      const user: User = await this.usersService.update(req.user.sub, updateUserDto);
       const { id, password, updatedAt, createdAt, ...response } = user;
       return {
         "data": {
-          response,
-          "ref": `https://study-planner-be.onrender.com/api/v1/users/${userId}`
+          response
         },
         "statusCode": 200,
         "message": 'All account information has been successfully updated'
       }
     } catch (error: any) {
-      throw new NotImplementedException(`Information of account with id=${userId} can't be updated`);
+      throw new ForbiddenException(`Can't update user`);
     }
   }
 
-  @Patch(':id/fn-change')
-  async changeFullname(@Param('id') userId: number, @Body() changeFullname: Record<string, string>) {
-    const userExist: User = await this.usersService.findOne(userId);
-    if (!userExist) {
-      throw new NotFoundException(`Account with id=${userId} can't be found`);
-    }
-
+	@UseGuards(AuthenGuard)
+  @Delete()
+  async remove(@Req() req: any) {
     try {
-      const user: User = await this.usersService.changeFullname(userId, changeFullname.fullname);
-      const { id, password, updatedAt, createdAt, ...response } = user;
-      return {
-        "data": {
-          response,
-          "ref": `https://study-planner-be.onrender.com/api/v1/users/${userId}`
-        },
-        "statusCode": 200,
-        "message": "Account's fullname has been successfully updated"
-      }
-    } catch (error: any) {
-      throw new NotImplementedException(`Fullname of account with id=${userId} can't be updated`);
-    }
-  }
-
-  @Patch(':id/pw-change')
-  async changePassword(@Param('id') userId: number, @Body() changePassword: Record<string, string>) {
-    const userExist: User = await this.usersService.findOne(userId);
-    if (!userExist) {
-      throw new NotFoundException(`Account with id=${userId} can't be found`);
-    }
-
-    try {
-      const user: User = await this.usersService.changePassword(userId, changePassword.password);
-      const { id, password, updatedAt, createdAt, ...response } = user;
-      return {
-        "data": {
-          response,
-          "ref": `https://study-planner-be.onrender.com/api/v1/users/${userId}`
-        },
-        "statusCode": 200,
-        "message": "Account's password has been successfully updated"
-      }
-    } catch (error: any) {
-      throw new NotImplementedException(`Password of account with id=${userId} can't be updated`);
-    }
-  }
-
-  @Delete(':id')
-  async remove(@Param('id') id: number) {
-    try {
-      await this.usersService.remove(id);
+      await this.usersService.remove(req.user.sub);
       return {
         "statusCode": 200,
-        "message": `User with id=${id} has been successfully deleted`
+        "message": `User has been successfully deleted`
       }
     } catch (error: any) {
-      throw new NotImplementedException(`Account with id=${id} can't be deleted`);
+      throw new ForbiddenException(`User can't be deleted`);
     }
-
   }
 }
