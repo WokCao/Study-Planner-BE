@@ -1,5 +1,6 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
@@ -54,4 +55,22 @@ export class TasksService {
 	async findOne(taskId: number, userId: number): Promise<Task> {
 		return await this.taskRepository.findOne({ where: { taskId, user: { id: userId } } });
 	}
+
+    async update(taskId: number, userId: number, updateTaskDto: UpdateTaskDto): Promise<Task> {
+        // Find the task by taskId and userId
+        const task = await this.findOne(taskId, userId);
+
+        if (!task) {
+            throw new NotFoundException(`Task with taskId=${taskId} and userId=${userId} can't be found`);
+        }
+
+        // Merge the updates into the task
+        const updatedTask = this.taskRepository.merge(task, updateTaskDto);
+
+        try {
+            return await this.taskRepository.save(updatedTask);
+        } catch (error) {
+            throw new ForbiddenException(`Error updating task: ${error.message}`);
+        }
+    }
 }

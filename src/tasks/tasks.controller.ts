@@ -1,6 +1,7 @@
-import { Controller, Post, Body, UnauthorizedException, InternalServerErrorException, BadRequestException, ValidationPipe, Get, Param, NotFoundException, UseGuards, Req, Query } from '@nestjs/common';
+import { Controller, Post, Body, UnauthorizedException, InternalServerErrorException, BadRequestException, ValidationPipe, Get, Param, NotFoundException, UseGuards, Req, Query, Put, ParseIntPipe } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
 import { AuthenGuard } from '../auth/auth.guard';
 
@@ -57,4 +58,10 @@ export class TasksController {
 			throw new NotFoundException(`Task with taskId=${taskId} and userId=${req.user.sub} can't be found`);
 		}
 	}
+
+    @UseGuards(AuthenGuard)
+    @Put('update/:taskId')
+    async updateTask(@Param('taskId', ParseIntPipe) taskId: number, @Body(new ValidationPipe()) updateTaskDto: UpdateTaskDto, @Req() req: any) {
+        return this.tasksService.update(taskId, req.user.sub, updateTaskDto);
+    }
 }
