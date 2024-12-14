@@ -51,11 +51,13 @@ export class UsersService {
   async create(createUserDto: CreateUserDto): Promise<User> {
     const validateEmail: User = await this.userRepository.findOne({ where: { email: createUserDto.email } });
     if (validateEmail) {
-      throw new ConflictException(`Email: ${createUserDto.email} has been used. Please try another email`);
+      throw new ConflictException(`Email ${createUserDto.email} has already been used`);
     }
 
     const { email, fullname, password, confirmPassword, googleAccount, avatarUrl } = createUserDto;
-    if (password && password !== confirmPassword) return null;
+    if (password && password !== confirmPassword) {
+      throw new ConflictException(`Passwords do not match`);
+    }
 
     const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
 

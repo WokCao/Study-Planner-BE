@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Delete, Put, NotFoundException, UnauthorizedException, InternalServerErrorException, UseGuards, Req, ValidationPipe, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, Put, NotFoundException, UnauthorizedException, InternalServerErrorException, UseGuards, Req, ValidationPipe, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -10,7 +10,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
   @Post()
-  async create(@Body() createUserDto: CreateUserDto) {
+  async create(@Body(new ValidationPipe()) createUserDto: CreateUserDto) {
     try {
       const createdUser: User = await this.usersService.create(createUserDto);
       const { id, password, updatedAt, createdAt, ...response } = createdUser;
@@ -27,7 +27,9 @@ export class UsersController {
         throw new UnauthorizedException(error.message);
       } else if (error.statusCode === 500) {
         throw new InternalServerErrorException(error.message);
-      }
+      } else {
+				throw new BadRequestException(error.message);
+			}
     }
   }
 

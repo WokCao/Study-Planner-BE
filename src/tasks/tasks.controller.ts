@@ -61,7 +61,7 @@ export class TasksController {
 
     @UseGuards(AuthenGuard)
     @Put(':id')
-    async updateTask(@Param('id', ParseIntPipe) taskId: number, @Body(new ValidationPipe()) updateTaskDto: UpdateTaskDto, @Req() req: any) {
+    async updateTask(@Param('id', ParseIntPipe) taskId: number, @Body(new ValidationPipe({ whitelist: true })) updateTaskDto: UpdateTaskDto, @Req() req: any) {
         return this.tasksService.update(taskId, req.user.sub, updateTaskDto);
     }
 
