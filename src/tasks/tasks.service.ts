@@ -38,18 +38,18 @@ export class TasksService {
 	async findAll(userId: number, page: number = 1, limit: number = 10): Promise<{ data: Task[]; total: number; page: number; limit: number }> {
 		const offset = (page - 1) * limit;
 
-    const [data, total] = await this.taskRepository.findAndCount({
-      where: { user: { id: userId } },
-      take: limit,
-      skip: offset,
-    });
+        const [data, total] = await this.taskRepository.findAndCount({
+            where: { user: { id: userId } },
+            take: limit,
+            skip: offset,
+        });
 
-    return {
-      data,
-      total,
-      page,
-      limit,
-    };
+        return {
+            data,
+            total,
+            page,
+            limit,
+        };
 	}
 
 	async findOne(taskId: number, userId: number): Promise<Task> {
@@ -71,6 +71,21 @@ export class TasksService {
             return await this.taskRepository.save(updatedTask);
         } catch (error) {
             throw new ForbiddenException(`Error updating task: ${error.message}`);
+        }
+    }
+
+    async delete(taskId: number, userId: number): Promise<void> {
+        // Find the task by taskId and userId
+        const task = await this.findOne(taskId, userId);
+
+        if (!task) {
+            throw new NotFoundException(`Task with id=${taskId} can't be found for the specified user`);
+        }
+
+        try {
+            await this.taskRepository.delete(taskId);
+        } catch (error) {
+            throw new ForbiddenException(`Error deleting task: ${error.message}`);
         }
     }
 }
