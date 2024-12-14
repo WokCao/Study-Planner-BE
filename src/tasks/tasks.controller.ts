@@ -35,10 +35,22 @@ export class TasksController {
 	}
 
 	@UseGuards(AuthenGuard)
-	@Get('user')
-	findAll(@Query('page') page: number = 1, @Query('limit') limit: number = 10, @Req() req: any) { 
-		return this.tasksService.findAll(req.user.sub, page, limit);
+	@Get('recent')
+	findRecent(@Req() req: any) { 
+		return this.tasksService.findRecent(req.user.sub);
 	}
+
+    @UseGuards(AuthenGuard)
+    @Get('this-month/page/:page')
+    async findThisMonth(@Req() req: any, @Param('page', ParseIntPipe) page: number): Promise<{ data: Task[]; total: number; page: number }> {
+        return this.tasksService.findThisMonth(req.user.sub, page);
+    }
+
+    @UseGuards(AuthenGuard)
+    @Get('other-months/page/:page')
+    async findOtherMonths(@Req() req: any, @Param('page', ParseIntPipe) page: number): Promise<{ data: Task[]; total: number; page: number }> {
+        return this.tasksService.findOtherMonths(req.user.sub, page);
+    }
 
 	@UseGuards(AuthenGuard)
 	@Get('user/:id')

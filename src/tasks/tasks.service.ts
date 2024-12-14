@@ -1,8 +1,8 @@
-import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Between, MoreThan, Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
 import { User } from '../users/entities/user.entity';
 
@@ -35,22 +35,74 @@ export class TasksService {
 		}
 	}
 
-	async findAll(userId: number, page: number = 1, limit: number = 10): Promise<{ data: Task[]; total: number; page: number; limit: number }> {
-		const offset = (page - 1) * limit;
+	async findRecent(userId: number): Promise<{ data: Task[]; total: number }> {
+        const [data, total] = await this.taskRepository.findAndCount({
+            where: { user: { id: userId }, deadline: MoreThan(new Date()) },
+            order: { deadline: 'ASC' },
+            take: 5,
+        });
+
+        return {
+            data,
+            total
+        };
+	}
+
+    async findThisMonth(userId: number, page: number = 1): Promise<{ data: Task[]; total: number; page: number }> {
+        if (page < 1) {
+            throw new BadRequestException('Page number must be 1 or higher');
+        }
+
+        const tasksPerPage = 10;
+        const currentDate = new Date();
+        const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
 
         const [data, total] = await this.taskRepository.findAndCount({
-            where: { user: { id: userId } },
-            take: limit,
-            skip: offset,
+            where: {
+                user: { id: userId },
+                deadline: Between(startOfMonth, endOfMonth),
+            },
+            order: { deadline: 'ASC' },
+            skip: (page - 1) * tasksPerPage, // Skip tasks of previous pages
+            take: tasksPerPage, // Limit tasks per page
         });
 
         return {
             data,
             total,
-            page,
-            limit,
+            page
         };
-	}
+    }
+
+    async findOtherMonths(userId: number, page: number = 1): Promise<{ data: Task[]; total: number; page: number }> {
+        if (page < 1) {
+            throw new BadRequestException('Page number must be 1 or higher');
+        }
+
+        const tasksPerPage = 10;
+        const currentDate = new Date();
+        const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+        const [data, total] = await this.taskRepository
+            .createQueryBuilder('task')
+            .where('task.userId = :userId', { userId })
+            .andWhere(
+                '(task.deadline < :startOfMonth OR task.deadline > :endOfMonth)',
+                { startOfMonth, endOfMonth },
+            )
+            .orderBy('task.deadline', 'ASC')
+            .skip((page - 1) * tasksPerPage)
+            .take(tasksPerPage)
+            .getManyAndCount();
+
+        return {
+            data,
+            total,
+            page
+        };
+    }
 
 	async findOne(taskId: number, userId: number): Promise<Task> {
 		return await this.taskRepository.findOne({ where: { taskId, user: { id: userId } } });
