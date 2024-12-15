@@ -10,6 +10,8 @@ import { AuthModule } from './auth/auth.module';
 import { RedisModule } from './redis/redis.module';
 import { TasksController } from './tasks/tasks.controller';
 import { TasksModule } from './tasks/tasks.module';
+import { CloudStorageService } from './cloud-storage/cloud-storage.service';
+import { CloudStorageModule } from './cloud-storage/cloud-storage.module';
 
 @Module({
   imports: [UsersModule, 
@@ -27,9 +29,10 @@ import { TasksModule } from './tasks/tasks.module';
     }),
     AuthModule,
     RedisModule,
-    TasksModule
+    TasksModule,
+    CloudStorageModule
   ],
   controllers: [AppController, TasksController],
-  providers: [AppService],
+  providers: [AppService, CloudStorageService],
 })
 export class AppModule {}

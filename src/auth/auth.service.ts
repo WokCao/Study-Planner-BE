@@ -59,7 +59,7 @@ export class AuthService {
             const { password, ...result } = user;
             const payload = { sub: result.id, fullname: result.fullname, email: result.email };
             const token = await this.jwtService.signAsync(payload);
-            await this.redisService.saveToken(user.id, token, 120);
+            await this.redisService.saveToken(user.id, token, 3600);
 
             const response = {
                 loginResponseDto: {
