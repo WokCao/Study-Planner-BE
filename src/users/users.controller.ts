@@ -1,13 +1,15 @@
-import { Controller, Get, Post, Body, Delete, Put, NotFoundException, UnauthorizedException, InternalServerErrorException, UseGuards, Req, ValidationPipe, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, Put, NotFoundException, UnauthorizedException, InternalServerErrorException, UseGuards, Req, ValidationPipe, ForbiddenException, BadRequestException, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { AuthenGuard } from '../auth/auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { CloudStorageService } from 'src/cloud-storage/cloud-storage.service';
 
 @Controller('api/v1/users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService, private readonly cloudStorageService: CloudStorageService) { }
 
   @Post()
   async create(@Body(new ValidationPipe()) createUserDto: CreateUserDto) {
@@ -28,12 +30,12 @@ export class UsersController {
       } else if (error.statusCode === 500) {
         throw new InternalServerErrorException(error.message);
       } else {
-				throw new BadRequestException(error.message);
-			}
+        throw new BadRequestException(error.message);
+      }
     }
   }
 
-	@UseGuards(AuthenGuard)
+  @UseGuards(AuthenGuard)
   @Get()
   async findOne(@Req() req: any) {
     try {
@@ -51,7 +53,7 @@ export class UsersController {
     }
   }
 
-	@UseGuards(AuthenGuard)
+  @UseGuards(AuthenGuard)
   @Put()
   async update(@Req() req: any, @Body(new ValidationPipe({ whitelist: true })) updateUserDto: UpdateUserDto) {
     try {
@@ -69,7 +71,27 @@ export class UsersController {
     }
   }
 
-	@UseGuards(AuthenGuard)
+  @UseGuards(AuthenGuard)
+  @Put('/updateAvatar')
+  @UseInterceptors(FileInterceptor('file'))
+  async updateAvatar(@Req() req: any, @UploadedFile() file: Express.Multer.File) {
+    try {
+      const imageUrl = await this.cloudStorageService.uploadFile(file, req.user.sub);
+      const updateUserDto: UpdateUserDto = {
+        avatarUrl: imageUrl
+      }
+      const user: User = await this.usersService.update(req.user.sub, updateUserDto);
+      return { 
+        message: 'Avatar updated successfully', 
+        statusCode: 200,
+        data: user.avatarUrl
+      };
+    } catch (error) {
+      throw new Error('Failed to change avatar. Please try again');
+    }
+  }
+
+  @UseGuards(AuthenGuard)
   @Delete()
   async remove(@Req() req: any) {
     try {
