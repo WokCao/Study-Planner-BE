@@ -36,20 +36,53 @@ export class TasksController {
 
 	@UseGuards(AuthenGuard)
 	@Get('recent')
-	findRecent(@Req() req: any) { 
-		return this.tasksService.findRecent(req.user.sub);
+	async findRecent(@Req() req: any) {
+        try {
+            const response = await this.tasksService.findRecent(req.user.sub);
+            return {
+                "data": {
+                    response
+                },
+                "statusCode": 200,
+                "message": 'Successfully'
+            }
+        } catch (error: any) {
+            throw error;
+        }
 	}
 
     @UseGuards(AuthenGuard)
     @Get('this-month/page/:page')
-    async findThisMonth(@Req() req: any, @Param('page', ParseIntPipe) page: number): Promise<{ data: Task[]; total: number; page: number }> {
-        return this.tasksService.findThisMonth(req.user.sub, page);
+    async findThisMonth(@Req() req: any, @Param('page', ParseIntPipe) page: number) {
+        try {
+            const response = await this.tasksService.findThisMonth(req.user.sub, page);
+            return {
+                "data": {
+                    response
+                },
+                "statusCode": 200,
+                "message": 'Successfully'
+            }
+        } catch (error: any) {
+            throw error;
+        }
     }
 
     @UseGuards(AuthenGuard)
     @Get('other-months/page/:page')
-    async findOtherMonths(@Req() req: any, @Param('page', ParseIntPipe) page: number): Promise<{ data: Task[]; total: number; page: number }> {
-        return this.tasksService.findOtherMonths(req.user.sub, page);
+    async findOtherMonths(@Req() req: any, @Param('page', ParseIntPipe) page: number) {
+        try {
+            const response = await this.tasksService.findOtherMonths(req.user.sub, page);
+            return {
+                "data": {
+                    response
+                },
+                "statusCode": 200,
+                "message": 'Successfully'
+            }
+        } catch (error: any) {
+            throw error;
+        }
     }
 
 	@UseGuards(AuthenGuard)
@@ -74,13 +107,31 @@ export class TasksController {
     @UseGuards(AuthenGuard)
     @Put(':id')
     async updateTask(@Param('id', ParseIntPipe) taskId: number, @Body(new ValidationPipe({ whitelist: true })) updateTaskDto: UpdateTaskDto, @Req() req: any) {
-        return this.tasksService.update(taskId, req.user.sub, updateTaskDto);
+        try {
+			const response = await this.tasksService.update(taskId, req.user.sub, updateTaskDto);
+			return {
+				"data": {
+					response
+				},
+				"statusCode": 200,
+				"message": 'Successfully'
+			}
+		} catch (error: any) {
+			throw error;
+		}
     }
 
     @UseGuards(AuthenGuard)
     @Delete(':id')
-    async deleteTask(@Param('id', ParseIntPipe) taskId: number, @Req() req: any): Promise<{ message: string }> {
-        await this.tasksService.delete(taskId, req.user.sub);
-        return { message: `Task with id=${taskId} has been successfully deleted` };
+    async deleteTask(@Param('id', ParseIntPipe) taskId: number, @Req() req: any) {
+        try {
+            await this.tasksService.delete(taskId, req.user.sub);
+			return {
+				"statusCode": 200,
+				"message": 'Task with id=${taskId} has been successfully deleted'
+			}
+		} catch (error: any) {
+			throw error;
+		}
     }
 }
