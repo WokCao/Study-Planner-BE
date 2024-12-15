@@ -53,7 +53,7 @@ export class TasksService {
             throw new BadRequestException('Page number must be 1 or higher');
         }
 
-        const tasksPerPage = 10;
+        const tasksPerPage = 5;
         const currentDate = new Date();
         const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
         const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
@@ -80,7 +80,7 @@ export class TasksService {
             throw new BadRequestException('Page number must be 1 or higher');
         }
 
-        const tasksPerPage = 10;
+        const tasksPerPage = 5;
         const currentDate = new Date();
         const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
         const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
