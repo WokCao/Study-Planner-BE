@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, InternalServerErro
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, MoreThan, Repository } from 'typeorm';
+import { And, Between, MoreThan, Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
 import { User } from '../users/entities/user.entity';
 
@@ -61,7 +61,10 @@ export class TasksService {
         const [data, total] = await this.taskRepository.findAndCount({
             where: {
                 user: { id: userId },
-                deadline: Between(startOfMonth, endOfMonth),
+                deadline: And(
+                    Between(startOfMonth, endOfMonth),
+                    MoreThan(currentDate)
+                ),
             },
             order: { deadline: 'ASC' },
             skip: (page - 1) * tasksPerPage, // Skip tasks of previous pages
