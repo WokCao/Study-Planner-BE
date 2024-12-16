@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './users/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { RedisModule } from './redis/redis.module';
+import { TaskModule } from './tasks/task.module';
 
 @Module({
   imports: [UsersModule, 
@@ -19,10 +20,11 @@ import { RedisModule } from './redis/redis.module';
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
       entities: [User],
-      synchronize: process.env.NODE_ENV === 'development',
+      synchronize: false,
     }),
     AuthModule,
-    RedisModule
+    RedisModule,
+    TaskModule
   ],
   controllers: [AppController],
   providers: [AppService],
