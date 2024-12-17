@@ -35,6 +35,26 @@ export class TasksService {
 		}
 	}
 
+    async findAll(userId: number): Promise<{ data: Task[]; total: number }> {
+        const currentDate = new Date();
+
+        await this.taskRepository
+            .createQueryBuilder()
+            .update(Task)
+            .set({ status: 'Expired' })
+            .where('userId = :userId', { userId })
+            .andWhere('deadline < :currentDate', { currentDate })
+            .andWhere('status != :status', { status: 'Expired' })
+            .andWhere('status != :status', { status: 'Completed' })
+            .execute();
+
+        const [data, total] = await this.taskRepository.findAndCount({ where: { user: { id: userId } }, order: { taskId: 'ASC' } });
+        return {
+            data,
+            total
+        };
+	}
+
 	async findRecent(userId: number): Promise<{ data: Task[]; total: number }> {
         const [data, total] = await this.taskRepository.findAndCount({
             where: { user: { id: userId }, deadline: MoreThan(new Date()) },

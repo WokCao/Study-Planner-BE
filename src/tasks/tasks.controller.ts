@@ -34,6 +34,23 @@ export class TasksController {
 		}
 	}
 
+    @UseGuards(AuthenGuard)
+	@Get('all')
+	async findAll(@Req() req: any) {
+        try {
+            const response = await this.tasksService.findAll(req.user.sub);
+            return {
+                "data": {
+                    response
+                },
+                "statusCode": 200,
+                "message": 'Successfully'
+            }
+        } catch (error: any) {
+            throw error;
+        }
+	}
+
 	@UseGuards(AuthenGuard)
 	@Get('recent')
 	async findRecent(@Req() req: any) {
