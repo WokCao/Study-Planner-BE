@@ -76,10 +76,15 @@ export class UsersController {
   @UseInterceptors(FileInterceptor('file'))
   async updateAvatar(@Req() req: any, @UploadedFile() file: Express.Multer.File) {
     try {
-      const imageUrl = await this.cloudStorageService.uploadFile(file, req.user.sub);
+      const imageUrl = await this.cloudStorageService.uploadImage(file, req.user.sub);
       const updateUserDto: UpdateUserDto = {
         avatarUrl: imageUrl
       }
+
+      const extractAvatar: User = await this.usersService.findOne(req.user.sub);
+      const { avatarUrl, ...remains } = extractAvatar;
+      await this.cloudStorageService.deleteImage(avatarUrl);
+      
       const user: User = await this.usersService.update(req.user.sub, updateUserDto);
       return { 
         message: 'Avatar updated successfully', 

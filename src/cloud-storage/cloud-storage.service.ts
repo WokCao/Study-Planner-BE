@@ -11,7 +11,7 @@ export class CloudStorageService {
         this.bucketName = 'study-planner';
     }
 
-    async uploadFile(file: Express.Multer.File, id: number): Promise<string> {
+    async uploadImage(file: Express.Multer.File, id: number): Promise<string> {
         const { originalname, buffer } = file;
         const fileName = `${Date.now()}-${originalname}-${id}`;
 
@@ -38,5 +38,16 @@ export class CloudStorageService {
 
             stream.end(buffer);
         });
+    }
+
+    async deleteImage(url: string): Promise<void> {
+        const urlComponents = url.split('/');
+        const fileName = urlComponents[urlComponents.length - 1];
+        const file = this.storage.bucket(this.bucketName).file(fileName);
+        try {
+            await file.delete();
+        } catch (error) {
+            throw new Error(`Unable to delete file: ${fileName}`);
+        }
     }
 }
