@@ -1,22 +1,49 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Exclude } from 'class-transformer';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('tasks')
 export class Task {
-  @PrimaryGeneratedColumn()
-  id: number;
+    @PrimaryGeneratedColumn()
+    taskId: number;
 
-  @Column()
-  title: string;
+    @ManyToOne(() => User, (user) => user.id, { onDelete: 'CASCADE' })
+    user: User;
 
-  @Column({ type: 'enum', enum: ['time', 'allday'], default: 'time' })
-  category: 'time' | 'allday';
+    @Column({ type: 'varchar', length: 255 })
+    name: string;
 
-  @Column()
-  start: Date;
+    @Column({ type: 'text', nullable: true })
+    description?: string;
 
-  @Column()
-  end: Date;
+    @Column({
+        type: 'varchar',
+        length: 50,
+        nullable: true,
+        default: 'Medium',
+        enum: ['High', 'Medium', 'Low']
+    })
+    priorityLevel: 'High' | 'Medium' | 'Low';
 
-  @Column({ type: 'enum', enum: ['Todo', 'In Progress', 'Completed', 'Expired'], default: 'Todo' })
-  status: 'Todo' | 'In Progress' | 'Completed' | 'Expired';
+    @Column({ type: 'interval', nullable: true })
+    estimatedTime?: string;
+
+    @Column({
+        type: 'varchar',
+        length: 50,
+        default: 'Todo',
+        enum: ['Todo', 'In Progress', 'Completed', 'Expired']
+    })
+    status: 'Todo' | 'In Progress' | 'Completed' | 'Expired';
+
+    @Column({ type: 'timestamp', nullable: true })
+    deadline?: Date;
+
+    @CreateDateColumn()
+    @Exclude()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    @Exclude()
+    updatedAt: Date;
 }

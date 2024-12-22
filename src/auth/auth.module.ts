@@ -14,7 +14,7 @@ dotenv.config();
     JwtModule.register({
       global: true,
       secret: process.env.JWT_CONSTANT,
-      signOptions: { expiresIn: '120s' },
+      signOptions: { expiresIn: '3600s' },
     }),
     RedisModule,
     PassportModule.register({ defaultStrategy: 'google' })

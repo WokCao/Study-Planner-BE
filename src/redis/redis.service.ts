@@ -7,12 +7,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
     async onModuleInit() {
         if (!this.client) {
-            if (process.env.NODE_ENV === 'development') {
-                this.client = new Redis(`rediss://${process.env.REDIS_USERNAME}:${process.env.REDIS_PASSWORD}@${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`);
-            }
-            else {
-                this.client = new Redis(`redis://${process.env.REDIS_USERNAME}:${process.env.REDIS_PORT}`);
-            }
+            this.client = new Redis(`rediss://${process.env.REDIS_USERNAME}:${process.env.REDIS_PASSWORD}@${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`);
     
             this.client.on('error', () => { console.log('error')} )
             this.client.on('connect', () => { console.log('connected')} )

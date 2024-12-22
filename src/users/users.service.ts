@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcryptjs';
@@ -51,11 +51,13 @@ export class UsersService {
   async create(createUserDto: CreateUserDto): Promise<User> {
     const validateEmail: User = await this.userRepository.findOne({ where: { email: createUserDto.email } });
     if (validateEmail) {
-      throw new ConflictException(`Email: ${createUserDto.email} has been used. Please try another email`);
+      throw new ConflictException(`Email ${createUserDto.email} has already been used`);
     }
 
     const { email, fullname, password, confirmPassword, googleAccount, avatarUrl } = createUserDto;
-    if (password && password !== confirmPassword) return null;
+    if (password && password !== confirmPassword) {
+      throw new ConflictException(`Passwords do not match`);
+    }
 
     const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
 
@@ -83,41 +85,29 @@ export class UsersService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    const result = await this.userRepository.update(id, updateUserDto);
-
-    if (result.affected === 0) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
-
-    return this.userRepository.findOneBy({ id });
-  }
-
-  async changeFullname(id: number, fullname: string): Promise<User> {
-    const user: User = await this.userRepository.findOne({ where: { id } });
+    const user = await this.findOne(id);
     if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(`User can't be found`);
     }
+
+    if (updateUserDto.password) {
+			if (!updateUserDto.oldPassword) {
+				throw new BadRequestException(`Old password not provided`);
+			}
+
+			if (!(await bcrypt.compare(updateUserDto.oldPassword, user.password))) {
+				throw new BadRequestException(`Old password does not match`);
+			}
+
+      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+    }
+
+    const result = this.userRepository.merge(user, updateUserDto);
+
     try {
-      await this.userRepository.update(id, { fullname: fullname });
-      return user;
-    } catch (error: any) {
-      throw new InternalServerErrorException(error.message);
-    }
-  }
-
-  async changePassword(id: number, password: string): Promise<User> {
-    const user: User = await this.userRepository.findOne({ where: { id } });
-
-    if (user && await bcrypt.compare(password, user.password)) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      try {
-        await this.userRepository.update(id, { password: hashedPassword });
-        return user;
-      } catch (error: any) {
-        throw new InternalServerErrorException(error.message);
-      }
-    } else {
-      throw new NotFoundException(`User with ID ${id} not found or password is incorrect`)
+      return await this.userRepository.save(result);
+    } catch (error) {
+      throw new ForbiddenException(`Error updating user: ${error.message}`);
     }
   }
 
