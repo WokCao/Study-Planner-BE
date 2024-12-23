@@ -25,7 +25,7 @@ import { CloudStorageModule } from './cloud-storage/cloud-storage.module';
       database: process.env.DATABASE_NAME,
       entities: [User, Task],
       autoLoadEntities: true,
-      synchronize: process.env.NODE_ENV === 'development',
+      synchronize: false,
     }),
     AuthModule,
     RedisModule,
