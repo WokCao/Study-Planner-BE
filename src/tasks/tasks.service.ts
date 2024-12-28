@@ -8,32 +8,32 @@ import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class TasksService {
-	constructor(
-		@InjectRepository(Task)
-		private readonly taskRepository: Repository<Task>,
-		@InjectRepository(User)
-		private readonly userRepository: Repository<User>,
-	) { }
+    constructor(
+        @InjectRepository(Task)
+        private readonly taskRepository: Repository<Task>,
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>,
+    ) { }
 
-	async create(createTaskDto: CreateTaskDto, userId: number): Promise<Task> {
-		// Fetch the User entity using user_id
-		const user = await this.userRepository.findOne({ where: { id: userId } });
-		if (!user) {
-			throw new NotFoundException(`User not found`);
-		}
+    async create(createTaskDto: CreateTaskDto, userId: number): Promise<Task> {
+        // Fetch the User entity using user_id
+        const user = await this.userRepository.findOne({ where: { id: userId } });
+        if (!user) {
+            throw new NotFoundException(`User not found`);
+        }
 
-		// Create the new task and assign the user relation
-		const newTask = this.taskRepository.create({
-			...createTaskDto,
-			user,
-		});
+        // Create the new task and assign the user relation
+        const newTask = this.taskRepository.create({
+            ...createTaskDto,
+            user,
+        });
 
-		try {
-			return await this.taskRepository.save(newTask);
-		} catch (error: any) {
-			throw new InternalServerErrorException(error.message);
-		}
-	}
+        try {
+            return await this.taskRepository.save(newTask);
+        } catch (error: any) {
+            throw new InternalServerErrorException(error.message);
+        }
+    }
 
     async findAll(userId: number): Promise<{ data: Task[]; total: number }> {
         const currentDate = new Date();
@@ -53,9 +53,17 @@ export class TasksService {
             data,
             total
         };
-	}
+    }
 
-	async findRecent(userId: number): Promise<{ data: Task[]; total: number }> {
+    async findTasksInInterval(userId: number, startDate: Date, endDate: Date) {
+        const [data, total] = await this.taskRepository.findAndCount({ where: { user: { id: userId }, deadline: Between(startDate, endDate) }, order: { taskId: 'ASC' } });
+        return {
+            data,
+            total
+        };
+    }
+
+    async findRecent(userId: number): Promise<{ data: Task[]; total: number }> {
         const [data, total] = await this.taskRepository.findAndCount({
             where: { user: { id: userId }, deadline: MoreThan(new Date()) },
             order: { deadline: 'ASC' },
@@ -66,7 +74,7 @@ export class TasksService {
             data,
             total
         };
-	}
+    }
 
     async findThisMonth(userId: number, page: number = 1): Promise<{ data: Task[]; total: number; page: number }> {
         if (page < 1) {
@@ -127,9 +135,11 @@ export class TasksService {
         };
     }
 
-	async findOne(taskId: number, userId: number): Promise<Task> {
-		return await this.taskRepository.findOne({ where: { taskId, user: { id: userId } } });
-	}
+    // async findByDate(userId: number, selectedDate: )
+
+    async findOne(taskId: number, userId: number): Promise<Task> {
+        return await this.taskRepository.findOne({ where: { taskId, user: { id: userId } } });
+    }
 
     async update(taskId: number, userId: number, updateTaskDto: UpdateTaskDto): Promise<Task> {
         // Find the task by taskId and userId
