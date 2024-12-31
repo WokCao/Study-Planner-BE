@@ -53,7 +53,7 @@ export class FocusSessionService {
         if (!task) {
             throw new NotFoundException('Task not found');
         }
-        
+
         try {
             const focusSession = await this.getFocusSession(taskId, userId);
             const updatedFocusSession = this.focusSessionRepository.merge(focusSession, updateFocusSession);
@@ -76,6 +76,22 @@ export class FocusSessionService {
 
         try {
             return await this.focusSessionRepository.findOne({ where: { task: { taskId }, user: { id: userId } } });
+        } catch (error: any) {
+            throw new InternalServerErrorException(error.message);
+        }
+    }
+
+    async getAllFocusSession(userId: number) {
+        const user = await this.userRepository.findOne({ where: { id: userId } });
+        if (!user) {
+            throw new NotFoundException(`User not found`);
+        }
+
+        try {
+            const [data, total] = await this.focusSessionRepository.findAndCount({ where: { user: { id: userId } }, relations: ['task'] });
+            return {
+                data, total
+            }
         } catch (error: any) {
             throw new InternalServerErrorException(error.message);
         }

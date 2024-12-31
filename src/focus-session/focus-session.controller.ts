@@ -24,7 +24,7 @@ export class FocusSessionController {
             return {
                 data: {
                     response,
-                    ref: `https://study-planner-be.onrender.com/api/v1/focus-session/${createFocusSession.progressId}`
+                    ref: `https://study-planner-be.onrender.com/api/v1/focus-session/${createFocusSessionDto.taskId}`
                 },
                 statusCode: 201,
                 message: 'Focus session has been successfully created'
@@ -53,7 +53,7 @@ export class FocusSessionController {
             return {
                 data: {
                     response,
-                    ref: `https://study-planner-be.onrender.com/api/v1/focus-session/${updatedFocusSession.progressId}`
+                    ref: `https://study-planner-be.onrender.com/api/v1/focus-session/${taskId}`
                 },
                 statusCode: 200,
                 message: 'Successfully'
@@ -66,6 +66,33 @@ export class FocusSessionController {
             } else {
                 throw new BadRequestException(error.message);
             }
+        }
+    }
+
+    @UseGuards(AuthenGuard)
+    @Get('all')
+    async getAllFocusSession(@Req() req: any) {
+        try {
+            const response = await this.focusSessionService.getAllFocusSession(req.user.sub);
+            const updatedResponse = []
+            response.data.forEach((element) => {
+                const { task, createdAt, ...remain } = element;
+                updatedResponse.push({
+                    ...remain,
+                    ref: `https://study-planner-be.onrender.com/api/v1/focus-session/${task.taskId}`
+                })
+            })
+
+            return {
+                "data": {
+                    response: updatedResponse,
+                    ref: `https://study-planner-be.onrender.com/api/v1/focus-session/all`
+                },
+                "statusCode": 200,
+                "message": 'Successfully'
+            }
+        } catch (error: any) {
+            throw error;
         }
     }
 
