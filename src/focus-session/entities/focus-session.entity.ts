@@ -1,20 +1,23 @@
+import { Exclude } from "class-transformer";
 import { Task } from "src/tasks/entities/task.entity";
 import { User } from "src/users/entities/user.entity";
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('progress')
 export class Progress {
     @PrimaryGeneratedColumn()
-    progressId: bigint;
+    progressId: number;
 
-    @ManyToOne(() => User, (user) => user.id, { onDelete: 'CASCADE' })
+    @ManyToOne(() => User, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'userId' })
     user: User;
 
-    @ManyToOne(() => Task, (task) => task.taskId, { onDelete: 'CASCADE' })
+    @OneToOne(() => Task, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'taskId' })
     task: Task;
 
-    @Column({ type: 'interval' })
-    completionTime: Date;
+    @Column({ type: 'bigint' })
+    completionTime: bigint;
 
     @Column({
         type: 'varchar',
@@ -22,4 +25,8 @@ export class Progress {
         nullable: true
     })
     status: string;
+
+    @CreateDateColumn()
+    @Exclude()
+    createdAt: Date;
 }
