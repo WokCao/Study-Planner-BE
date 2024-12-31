@@ -16,8 +16,8 @@ export class Progress {
     @JoinColumn({ name: 'taskId' })
     task: Task;
 
-    @Column({ type: 'bigint' })
-    completionTime: bigint;
+    @Column()
+    completionTime: number;
 
     @Column({
         type: 'varchar',

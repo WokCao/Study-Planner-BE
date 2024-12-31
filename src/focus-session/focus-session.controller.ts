@@ -1,14 +1,15 @@
-import { BadRequestException, Body, Controller, Get, InternalServerErrorException, Param, Post, Req, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, InternalServerErrorException, Param, Post, Put, Req, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { AuthenGuard } from 'src/auth/auth.guard';
 import { CreateFocusSessionDto } from './dto/create-focus-session.dto';
 import { FocusSessionService } from './focus-session.service';
 import { Progress } from './entities/focus-session.entity';
+import { UpdateFocusSessionDto } from './dto/update-focus-session.dto';
 
 @Controller('api/v1/focus-session')
 export class FocusSessionController {
     constructor(
         private readonly focusSessionService: FocusSessionService
-    ) {}
+    ) { }
 
     @UseGuards(AuthenGuard)
     @Post()
@@ -16,7 +17,7 @@ export class FocusSessionController {
         try {
             const createFocusSession: Progress = await this.focusSessionService.createFocusSession(createFocusSessionDto, req.user.sub);
             const response = {
-                completionTime: createFocusSession.completionTime.toString(),
+                completionTime: createFocusSession.completionTime,
                 status: createFocusSession.status,
                 progressId: createFocusSession.progressId
             }
@@ -40,12 +41,41 @@ export class FocusSessionController {
     }
 
     @UseGuards(AuthenGuard)
+    @Put(':id')
+    async updateFocusSession(@Param('id') taskId: number, @Body(new ValidationPipe()) updateFocusSession: UpdateFocusSessionDto, @Req() req: any) {
+        try {
+            const updatedFocusSession = await this.focusSessionService.updateFocusSession(taskId, updateFocusSession, req.user.sub);
+            const response = {
+                completionTime: updatedFocusSession.completionTime,
+                status: updatedFocusSession.status,
+                progressId: updatedFocusSession.progressId
+            }
+            return {
+                data: {
+                    response,
+                    ref: `https://study-planner-be.onrender.com/api/v1/focus-session/${updatedFocusSession.progressId}`
+                },
+                statusCode: 200,
+                message: 'Successfully'
+            }
+        } catch (error: any) {
+            if (error.statusCode === 409) {
+                throw new UnauthorizedException(error.message);
+            } else if (error.statusCode === 500) {
+                throw new InternalServerErrorException(error.message);
+            } else {
+                throw new BadRequestException(error.message);
+            }
+        }
+    }
+
+    @UseGuards(AuthenGuard)
     @Get(':id')
     async getFocusSession(@Param('id') taskId: number, @Req() req: any) {
         try {
             const getFocusSession = await this.focusSessionService.getFocusSession(taskId, req.user.sub);
             const response = {
-                completionTime: getFocusSession.completionTime.toString(),
+                completionTime: getFocusSession.completionTime,
                 status: getFocusSession.status,
                 progressId: getFocusSession.progressId
             }
