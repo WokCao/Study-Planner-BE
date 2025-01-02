@@ -81,18 +81,34 @@ export class FocusSessionService {
         }
     }
 
-    async getAllFocusSession(userId: number) {
+    async getAllFocusSession(year: number, userId: number) {
         const user = await this.userRepository.findOne({ where: { id: userId } });
         if (!user) {
             throw new NotFoundException(`User not found`);
         }
 
+        const currentDate = new Date();
+
         try {
-            const [data, total] = await this.focusSessionRepository.findAndCount({ where: { user: { id: userId } }, relations: ['task'] });
-            return {
-                data, total
-            }
+            const data = await this.focusSessionRepository
+                .createQueryBuilder('progress')
+                .innerJoin('progress.task', 'task')
+                .select([
+                    "EXTRACT(MONTH FROM task.deadline) AS month",
+                    "task.priorityLevel AS priority",
+                    "SUM(progress.completionTime) AS totalCompletionTime"
+                ])
+                .where("task.deadline < :currentDate", { currentDate })
+                .andWhere("EXTRACT(YEAR FROM task.deadline) = :year", { year })
+                .andWhere("progress.userId = :userId", { userId })
+                .groupBy("month, task.priorityLevel")
+                .orderBy("month", "ASC")
+                .addOrderBy("task.priorityLevel", "ASC")
+                .getRawMany();
+
+            return data;
         } catch (error: any) {
+            console.log(error)
             throw new InternalServerErrorException(error.message);
         }
     }

@@ -70,23 +70,15 @@ export class FocusSessionController {
     }
 
     @UseGuards(AuthenGuard)
-    @Get('all')
-    async getAllFocusSession(@Req() req: any) {
+    @Get('all/:year')
+    async getAllFocusSession(@Param('year') year: number, @Req() req: any) {
         try {
-            const response = await this.focusSessionService.getAllFocusSession(req.user.sub);
-            const updatedResponse = []
-            response.data.forEach((element) => {
-                const { task, createdAt, ...remain } = element;
-                updatedResponse.push({
-                    ...remain,
-                    ref: `https://study-planner-be.onrender.com/api/v1/focus-session/${task.taskId}`
-                })
-            })
+            const response = await this.focusSessionService.getAllFocusSession(year, req.user.sub);
 
             return {
                 "data": {
-                    response: updatedResponse,
-                    ref: `https://study-planner-be.onrender.com/api/v1/focus-session/all`
+                    response,
+                    ref: `https://study-planner-be.onrender.com/api/v1/focus-session/all/${year}`
                 },
                 "statusCode": 200,
                 "message": 'Successfully'
