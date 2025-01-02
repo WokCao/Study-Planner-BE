@@ -93,6 +93,23 @@ export class TasksController {
     }
 
     @UseGuards(AuthenGuard)
+    @Get('task-creations-by-year/:year')
+    async findTaskCreations(@Param('year') year: number, @Req() req: any) {
+        try {
+            const response = await this.tasksService.findTaskCreations(year, req.user.sub);
+            return {
+                data: {
+                    response
+                },
+                statusCode: 200,
+                message: 'Successfully'
+            }
+        } catch (error: any) {
+            throw error;
+        }
+    }
+
+    @UseGuards(AuthenGuard)
     @Get('this-month/page/:page')
     async findThisMonth(@Req() req: any, @Param('page', ParseIntPipe) page: number) {
         try {
