@@ -110,6 +110,40 @@ export class TasksService {
         }
     }
 
+    async findTaskDeadline(year: number, userId: number): Promise<{ month: number, deadline: number }[]> {
+        const user = await this.userRepository.findOne({ where: { id: userId } });
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        try {
+            const rawResult = await this.taskRepository
+                .query(`
+                    WITH months AS (
+                        SELECT generate_series(1, 12) AS month
+                    )
+                    SELECT 
+                        m.month, 
+                        COALESCE(COUNT(t."taskId"), 0) AS deadline
+                    FROM months m
+                    LEFT JOIN tasks t 
+                    ON EXTRACT(MONTH FROM t.deadline) = m.month 
+                    AND EXTRACT(YEAR FROM t.deadline) = $1
+                    GROUP BY m.month
+                    ORDER BY m.month;
+                    `, [year]);
+
+            const result = rawResult.map((row: { month: number, deadline: string }) => ({
+                month: row.month,
+                deadline: Number(row.deadline),
+            }));
+
+            return result;
+        } catch (error: any) {
+            throw new InternalServerErrorException('Cannot query database. Plesase try again...')
+        }
+    }
+
     async findThisMonth(userId: number, page: number = 1): Promise<{ data: Task[]; total: number; page: number }> {
         if (page < 1) {
             throw new BadRequestException('Page number must be 1 or higher');
