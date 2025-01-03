@@ -161,7 +161,7 @@ export class UsersService {
             }
 
             if (!user.isActive) {
-                throw new BadRequestException("This email hasn't been activated. Please confirm with the sent link firt")
+                throw new BadRequestException("This email hasn't been activated. Please confirm with the sent link first")
             }
 
             const rawToken = randomBytes(16).toString('hex');
