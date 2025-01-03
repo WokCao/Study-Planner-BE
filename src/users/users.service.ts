@@ -106,12 +106,12 @@ export class UsersService {
         const mailOptions = {
             from: process.env.EMAIL,
             to: email,
-            subject: 'Study Planner: Activate your account',
+            subject: 'StudyGem: Activate your account',
             html: `<p>Click <a href="http://localhost:3000/api/v1/users/activate/${token}">here</a> to activate your account.</p>`,
         };
 
         if (type === 1) {
-            mailOptions.subject = 'Study Planner: Reset your password';
+            mailOptions.subject = 'StudyGem: Reset your password';
             mailOptions.html = `
             <div>
                 <p>This is your new password. Please don't reveal to anyone and remember to <i>change</i> your password after login</p>
@@ -160,6 +160,10 @@ export class UsersService {
                 throw new UnauthorizedException('Email doesn\'t exist');
             }
 
+            if (!user.isActive) {
+                throw new BadRequestException("This email hasn't been activated. Please confirm with the sent link firt")
+            }
+
             const rawToken = randomBytes(16).toString('hex');
             const hashedPassword = await bcrypt.hash(rawToken, 10);
 
@@ -167,6 +171,7 @@ export class UsersService {
             await this.userRepository.save(user);
             await this.sendActivationEmail(email, rawToken, 1);
         } catch (error) {
+            if (error.status === 400) throw new BadRequestException(error.message);
             if (error.status === 401) throw new UnauthorizedException(error.message);
             throw new InternalServerErrorException(error.message);
         }
