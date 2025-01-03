@@ -22,6 +22,12 @@ export class User {
     @Column({ default: false })
     isGoogleAccount: boolean;
 
+    @Column({ default: false })
+    isActive: boolean;
+
+    @Column({ default: null })
+    activationToken: string;
+
     @CreateDateColumn()
     @Exclude()
     createdAt: Date;

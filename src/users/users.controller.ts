@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Delete, Put, NotFoundException, UnauthorizedException, InternalServerErrorException, UseGuards, Req, ValidationPipe, ForbiddenException, BadRequestException, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, Put, NotFoundException, UnauthorizedException, InternalServerErrorException, UseGuards, Req, ValidationPipe, ForbiddenException, BadRequestException, UseInterceptors, UploadedFile, Param } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -28,6 +28,23 @@ export class UsersController {
       if (error.statusCode === 409) {
         throw new UnauthorizedException(error.message);
       } else if (error.statusCode === 500) {
+        throw new InternalServerErrorException(error.message);
+      } else {
+        throw new BadRequestException(error.message);
+      }
+    }
+  }
+
+  @Get('activate/:token')
+  async activateAccount(@Param('token') token: string) {
+    try {
+      await this.usersService.activateAccount(token);
+      return {
+        statusCode: 200,
+        message: 'Account has been activated successfully'
+      }
+    } catch (error: any) {
+      if (error.statusCode === 500) {
         throw new InternalServerErrorException(error.message);
       } else {
         throw new BadRequestException(error.message);
@@ -84,10 +101,10 @@ export class UsersController {
       const extractAvatar: User = await this.usersService.findOne(req.user.sub);
       const { avatarUrl, ...remains } = extractAvatar;
       await this.cloudStorageService.deleteImage(avatarUrl);
-      
+
       const user: User = await this.usersService.update(req.user.sub, updateUserDto);
-      return { 
-        message: 'Avatar updated successfully', 
+      return {
+        message: 'Avatar updated successfully',
         statusCode: 200,
         data: user.avatarUrl
       };
