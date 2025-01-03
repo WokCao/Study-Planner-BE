@@ -6,6 +6,7 @@ import { User } from './entities/user.entity';
 import { AuthenGuard } from '../auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudStorageService } from 'src/cloud-storage/cloud-storage.service';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('api/v1/users')
 export class UsersController {
@@ -50,7 +51,7 @@ export class UsersController {
   }
 
   @Post('reset-password')
-  async resetPassword(@Body() body: { email: string }) {
+  async resetPassword(@Body(new ValidationPipe()) body: ResetPasswordDto) {
     try {
       await this.usersService.resetPassword(body.email);
       return {

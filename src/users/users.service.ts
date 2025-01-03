@@ -32,13 +32,14 @@ export class UsersService {
                 if (user.isActive) {
                     return user;
                 } else {
-                    throw new Error("The email hasn't been activated yet. Please click the link in the email.")
+                    throw new BadRequestException("The email hasn't been activated yet. Please click the link in the email.")
                 }
             }
 
             throw new UnauthorizedException('Password is wrong');
         } catch (error) {
-            if (error.status === 401) throw new UnauthorizedException(error.message);
+            if (error.status === 400) throw new BadRequestException(error.message);
+            else if (error.status === 401) throw new UnauthorizedException(error.message);
             throw new InternalServerErrorException('Database errors occur. Please try again...');
         }
     }
@@ -105,12 +106,12 @@ export class UsersService {
         const mailOptions = {
             from: process.env.EMAIL,
             to: email,
-            subject: 'Study Planner: Activate your account',
+            subject: 'StudyGem: Activate your account',
             html: `<p>Click <a href="http://localhost:3000/api/v1/users/activate/${token}">here</a> to activate your account.</p>`,
         };
 
         if (type === 1) {
-            mailOptions.subject = 'Study Planner: Reset your password';
+            mailOptions.subject = 'StudyGem: Reset your password';
             mailOptions.html = `
             <div>
                 <p>This is your new password. Please don't reveal to anyone and remember to <i>change</i> your password after login</p>
