@@ -28,7 +28,11 @@ export class UsersService {
             }
 
             if (user && await bcrypt.compare(loginUserDto.password, user.password)) {
-                return user;
+                if (user.isActive) {
+                    return user;
+                } else {
+                    throw new Error("The email hasn't been activated yet. Please click the link in the email.")
+                }
             }
 
             throw new UnauthorizedException('Password is wrong');
@@ -107,8 +111,11 @@ export class UsersService {
         try {
             await transporter.sendMail(mailOptions);
         } catch (error: any) {
-            console.log(error)
-            throw new Error('Cannot send activation mail to user')
+            if (error.responseCode === 550 || error.code === 'EENVELOPE') {
+                throw new Error('Invalid email address provided.');
+            } else {
+                throw new Error('An error occurred while sending the activation email.');
+            }
         }
     }
 

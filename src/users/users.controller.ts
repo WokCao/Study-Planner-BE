@@ -39,10 +39,7 @@ export class UsersController {
   async activateAccount(@Param('token') token: string) {
     try {
       await this.usersService.activateAccount(token);
-      return {
-        statusCode: 200,
-        message: 'Account has been activated successfully'
-      }
+      return '<p>Your account has been activated successfully. Back to <a href="http://localhost:5173/Study-Planner-FE/login">Login</a> page.</p>'
     } catch (error: any) {
       if (error.statusCode === 500) {
         throw new InternalServerErrorException(error.message);
