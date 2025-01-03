@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Delete, Put, NotFoundException, UnauthorizedException, InternalServerErrorException, UseGuards, Req, ValidationPipe, ForbiddenException, BadRequestException, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, Put, NotFoundException, UnauthorizedException, InternalServerErrorException, UseGuards, Req, ValidationPipe, ForbiddenException, BadRequestException, UseInterceptors, UploadedFile, Param } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -6,6 +6,7 @@ import { User } from './entities/user.entity';
 import { AuthenGuard } from '../auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudStorageService } from 'src/cloud-storage/cloud-storage.service';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('api/v1/users')
 export class UsersController {
@@ -28,6 +29,37 @@ export class UsersController {
       if (error.statusCode === 409) {
         throw new UnauthorizedException(error.message);
       } else if (error.statusCode === 500) {
+        throw new InternalServerErrorException(error.message);
+      } else {
+        throw new BadRequestException(error.message);
+      }
+    }
+  }
+
+  @Get('activate/:token')
+  async activateAccount(@Param('token') token: string) {
+    try {
+      await this.usersService.activateAccount(token);
+      return '<p>Your account has been activated successfully. Back to <a href="http://localhost:5173/Study-Planner-FE/login">Login</a> page.</p>'
+    } catch (error: any) {
+      if (error.statusCode === 500) {
+        throw new InternalServerErrorException(error.message);
+      } else {
+        throw new BadRequestException(error.message);
+      }
+    }
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body(new ValidationPipe()) body: ResetPasswordDto) {
+    try {
+      await this.usersService.resetPassword(body.email);
+      return {
+        statusCode: 200,
+        message: 'New password has been sent to your email. Please change it after having logged in'
+      }
+    } catch (error: any) {
+      if (error.statusCode === 500) {
         throw new InternalServerErrorException(error.message);
       } else {
         throw new BadRequestException(error.message);
@@ -84,10 +116,10 @@ export class UsersController {
       const extractAvatar: User = await this.usersService.findOne(req.user.sub);
       const { avatarUrl, ...remains } = extractAvatar;
       await this.cloudStorageService.deleteImage(avatarUrl);
-      
+
       const user: User = await this.usersService.update(req.user.sub, updateUserDto);
-      return { 
-        message: 'Avatar updated successfully', 
+      return {
+        message: 'Avatar updated successfully',
         statusCode: 200,
         data: user.avatarUrl
       };
