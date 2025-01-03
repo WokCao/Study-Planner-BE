@@ -32,13 +32,14 @@ export class UsersService {
                 if (user.isActive) {
                     return user;
                 } else {
-                    throw new Error("The email hasn't been activated yet. Please click the link in the email.")
+                    throw new BadRequestException("The email hasn't been activated yet. Please click the link in the email.")
                 }
             }
 
             throw new UnauthorizedException('Password is wrong');
         } catch (error) {
-            if (error.status === 401) throw new UnauthorizedException(error.message);
+            if (error.status === 400) throw new BadRequestException(error.message);
+            else if (error.status === 401) throw new UnauthorizedException(error.message);
             throw new InternalServerErrorException('Database errors occur. Please try again...');
         }
     }
@@ -167,7 +168,7 @@ export class UsersService {
             await this.sendActivationEmail(email, rawToken, 1);
         } catch (error) {
             if (error.status === 401) throw new UnauthorizedException(error.message);
-            throw new InternalServerErrorException('Database errors occur. Please try again...');
+            throw new InternalServerErrorException(error.message);
         }
     }
 

@@ -44,9 +44,7 @@ export class AuthController {
             if (error.status === 401) {
                 throw new UnauthorizedException(error.message);
             } else {
-                throw new InternalServerErrorException(
-                    'Our service is being maintained! Please try later.',
-                );
+                throw new InternalServerErrorException(error.message);
             }
         }
     }
