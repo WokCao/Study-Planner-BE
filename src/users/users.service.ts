@@ -160,6 +160,10 @@ export class UsersService {
                 throw new UnauthorizedException('Email doesn\'t exist');
             }
 
+            if (!user.isActive) {
+                throw new BadRequestException("This email hasn't been activated. Please confirm with the sent link firt")
+            }
+
             const rawToken = randomBytes(16).toString('hex');
             const hashedPassword = await bcrypt.hash(rawToken, 10);
 
@@ -167,6 +171,7 @@ export class UsersService {
             await this.userRepository.save(user);
             await this.sendActivationEmail(email, rawToken, 1);
         } catch (error) {
+            if (error.status === 400) throw new BadRequestException(error.message);
             if (error.status === 401) throw new UnauthorizedException(error.message);
             throw new InternalServerErrorException('Database errors occur. Please try again...');
         }
