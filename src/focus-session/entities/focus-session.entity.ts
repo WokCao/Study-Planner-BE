@@ -22,9 +22,11 @@ export class Progress {
     @Column({
         type: 'varchar',
         length: 50,
-        nullable: true
+        nullable: true,
+        default: 'Idle',
+        enum: ['Completed', 'Skipped', 'Idle']
     })
-    status: string;
+    status: 'Completed' | 'Skipped' | 'Idle';
 
     @CreateDateColumn()
     @Exclude()
