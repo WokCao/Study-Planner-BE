@@ -49,6 +49,23 @@ export class UsersController {
     }
   }
 
+  @Post('reset-password')
+  async resetPassword(@Body() body: { email: string }) {
+    try {
+      await this.usersService.resetPassword(body.email);
+      return {
+        statusCode: 200,
+        message: 'New password has been sent to your email. Please change it after having logged in'
+      }
+    } catch (error: any) {
+      if (error.statusCode === 500) {
+        throw new InternalServerErrorException(error.message);
+      } else {
+        throw new BadRequestException(error.message);
+      }
+    }
+  }
+
   @UseGuards(AuthenGuard)
   @Get()
   async findOne(@Req() req: any) {

@@ -9,6 +9,7 @@ import { LoginUserDto } from './dto/login-user.dto';
 import * as nodemailer from 'nodemailer';
 import { JwtService } from '@nestjs/jwt';
 import * as dotenv from 'dotenv';
+import { randomBytes } from 'crypto';
 dotenv.config();
 
 @Injectable()
@@ -81,14 +82,14 @@ export class UsersService {
         });
 
         try {
-            await this.sendActivationEmail(email, activationToken);
+            await this.sendActivationEmail(email, activationToken, 0);
             return await this.userRepository.save(newUser);
         } catch (error: any) {
             throw new InternalServerErrorException('Database errors occur. Please try again...');
         }
     }
 
-    async sendActivationEmail(email: string, token: string): Promise<void> {
+    async sendActivationEmail(email: string, token: string, type: number): Promise<void> {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             secure: true,
@@ -108,13 +109,23 @@ export class UsersService {
             html: `<p>Click <a href="http://localhost:3000/api/v1/users/activate/${token}">here</a> to activate your account.</p>`,
         };
 
+        if (type === 1) {
+            mailOptions.subject = 'Study Planner: Reset your password';
+            mailOptions.html = `
+            <div>
+                <p>This is your new password. Please don't reveal to anyone and remember to <i>change</i> your password after login</p>
+                <p>Password: <strong>${token}</strong></p>
+            </div>
+            `
+        }
+
         try {
             await transporter.sendMail(mailOptions);
         } catch (error: any) {
             if (error.responseCode === 550 || error.code === 'EENVELOPE') {
                 throw new Error('Invalid email address provided.');
             } else {
-                throw new Error('An error occurred while sending the activation email.');
+                throw new Error(`An error occurred while sending the ${type === 0 ? 'activation' : 'reset-password'} email.`);
             }
         }
     }
@@ -137,6 +148,26 @@ export class UsersService {
             }
         } catch (error) {
             throw new BadRequestException('Invalid or expired token');
+        }
+    }
+
+    async resetPassword(email: string) {
+        try {
+            const user = await this.userRepository.findOne({ where: { email } });
+
+            if (user === null) {
+                throw new UnauthorizedException('Email doesn\'t exist');
+            }
+
+            const rawToken = randomBytes(16).toString('hex');
+            const hashedPassword = await bcrypt.hash(rawToken, 10);
+
+            user.password = hashedPassword;
+            await this.userRepository.save(user);
+            await this.sendActivationEmail(email, rawToken, 1);
+        } catch (error) {
+            if (error.status === 401) throw new UnauthorizedException(error.message);
+            throw new InternalServerErrorException('Database errors occur. Please try again...');
         }
     }
 
