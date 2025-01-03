@@ -28,7 +28,7 @@ import { Progress } from './focus-session/entities/focus-session.entity';
       database: process.env.DATABASE_NAME,
       entities: [User, Task, Progress],
       autoLoadEntities: true,
-      synchronize: false,
+      synchronize: true,
     }),
     AuthModule,
     RedisModule,
