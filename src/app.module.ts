@@ -12,6 +12,9 @@ import { TasksController } from './tasks/tasks.controller';
 import { TasksModule } from './tasks/tasks.module';
 import { CloudStorageService } from './cloud-storage/cloud-storage.service';
 import { CloudStorageModule } from './cloud-storage/cloud-storage.module';
+import { FocusSessionController } from './focus-session/focus-session.controller';
+import { FocusSessionModule } from './focus-session/focus-session.module';
+import { Progress } from './focus-session/entities/focus-session.entity';
 
 @Module({
   imports: [UsersModule, 
@@ -23,16 +26,17 @@ import { CloudStorageModule } from './cloud-storage/cloud-storage.module';
       username: process.env.DATABASE_USER,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
-      entities: [User, Task],
+      entities: [User, Task, Progress],
       autoLoadEntities: true,
-      synchronize: process.env.NODE_ENV === 'development',
+      synchronize: false,
     }),
     AuthModule,
     RedisModule,
     TasksModule,
-    CloudStorageModule
+    CloudStorageModule,
+    FocusSessionModule
   ],
-  controllers: [AppController, TasksController],
+  controllers: [AppController, TasksController, FocusSessionController],
   providers: [AppService, CloudStorageService],
 })
 export class AppModule {}
