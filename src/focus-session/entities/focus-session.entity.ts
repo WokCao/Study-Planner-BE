@@ -24,9 +24,9 @@ export class Progress {
         length: 50,
         nullable: true,
         default: 'Idle',
-        enum: ['Completed', 'Skipped', 'Idle']
+        enum: ['Completed', 'Skipped', 'Ongoing', 'Idle']
     })
-    status: 'Completed' | 'Skipped' | 'Idle';
+    status: 'Completed' | 'Skipped' | 'Ongoing' | 'Idle';
 
     @CreateDateColumn()
     @Exclude()

@@ -4,6 +4,6 @@ export class CreateFocusSessionDto {
     @IsNotEmpty()
     taskId: number;
 
-    @IsEnum(['Completed', 'Skipped', 'Idle'], { message: 'status must be Completed, Skipped, or Idle' })
-    status: 'Completed' | 'Skipped' | 'Idle';
+    @IsEnum(['Completed', 'Skipped', 'Ongoing', 'Idle'], { message: 'status must be Completed, Skipped, or Idle' })
+    status: 'Completed' | 'Skipped' | 'Ongoing' | 'Idle';
 }

@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateFocusSessionDto } from './dto/create-focus-session.dto';
 import { Progress } from './entities/focus-session.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -29,6 +29,18 @@ export class FocusSessionService {
             throw new NotFoundException('Task not found');
         }
 
+        const checkExist = await this.focusSessionRepository.exists({
+            where: {
+                task: { taskId: createFocusSessionDto.taskId },
+                user: { id: userId }
+            },
+            relations: ['task', 'user']
+        });
+
+        if (checkExist) {
+            throw new ConflictException('The session of this task has been created before')
+        }
+
         const newFocusSession = this.focusSessionRepository.create({
             status: createFocusSessionDto.status,
             completionTime: 0,
@@ -56,7 +68,13 @@ export class FocusSessionService {
 
         try {
             const focusSession = await this.getFocusSession(taskId, userId);
-            const updatedFocusSession = this.focusSessionRepository.merge(focusSession, updateFocusSession);
+            const timeBefore = focusSession.completionTime;
+
+            const plusTime: UpdateFocusSessionDto = {
+                ...updateFocusSession,
+                completionTime: updateFocusSession.completionTime + timeBefore
+            }
+            const updatedFocusSession = this.focusSessionRepository.merge(focusSession, plusTime);
             return await this.focusSessionRepository.save(updatedFocusSession);
         } catch (error: any) {
             throw new InternalServerErrorException(error.message);
