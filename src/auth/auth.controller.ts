@@ -13,12 +13,10 @@ dotenv.config();
 
 @Controller('api/v1/auth')
 export class AuthController {
-    constructor(private authService: AuthService) { }
+    constructor(private readonly authService: AuthService) { }
 
     @Post('login')
-    async login(
-        @Body() signInDto: LoginUserDto,
-    ): Promise<{ data?: any; statusCode: number; message: string }> {
+    async login(@Body() signInDto: LoginUserDto) {
         try {
             const user = await this.authService.login(signInDto);
             return {
