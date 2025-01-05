@@ -15,28 +15,29 @@ import { CloudStorageModule } from './cloud-storage/cloud-storage.module';
 import { FocusSessionController } from './focus-session/focus-session.controller';
 import { FocusSessionModule } from './focus-session/focus-session.module';
 import { Progress } from './focus-session/entities/focus-session.entity';
+import { OpenaiModule } from './openai/openai.module';
 
 @Module({
-  imports: [UsersModule, 
+  imports: [UsersModule,
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: process.env.DATABASE_HOST,
-      port: parseInt(process.env.DATABASE_PORT, 10) || 5432,
-      username: process.env.DATABASE_USER,
-      password: process.env.DATABASE_PASSWORD,
-      database: process.env.DATABASE_NAME,
+      url: process.env.PG_URL,
+      ssl: {
+        rejectUnauthorized: false,
+      },
       entities: [User, Task, Progress],
       autoLoadEntities: true,
-      synchronize: true,
+      synchronize: false,
     }),
     AuthModule,
     RedisModule,
     TasksModule,
     CloudStorageModule,
-    FocusSessionModule
+    FocusSessionModule,
+    OpenaiModule
   ],
   controllers: [AppController, TasksController, FocusSessionController],
   providers: [AppService, CloudStorageService],
 })
-export class AppModule {}
+export class AppModule { }

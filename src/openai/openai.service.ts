@@ -8,7 +8,7 @@ export class OpenAIService {
     constructor() {
         // Instantiate the OpenAI client with the API key
         this.openai = new OpenAI({
-            apiKey: process.env.OPENAI_API,
+            apiKey: process.env.OPENAI_API_KEY,
         });
     }
 
