@@ -16,6 +16,7 @@ import { OpenAIService } from 'src/openai/openai.service';
     TypeOrmModule.forFeature([Task]),
     TypeOrmModule.forFeature([User]),
     TypeOrmModule.forFeature([Progress]),
+    RedisModule
   ],
 })
 export class FocusSessionModule {}
