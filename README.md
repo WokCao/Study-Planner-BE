@@ -2,98 +2,63 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+# StudyGem (BE)
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+StudyGem is a dynamic web application designed to empower users with advanced tools for task management, scheduling, and personal productivity. By combining intuitive features with cutting-edge AI insights, StudyGem offers a seamless and efficient way to stay on top of your goals, whether for work, study, or personal growth.
 
-## Description
+Here are instructions for deploying the Back-end:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 1. Download the source code
 
-## Project setup
-
-```bash
+Download the source code from this repository, then open a terminal in the folder and run:
+```
 $ npm install
 ```
 
-## Compile and run the project
+## 2. Add an .env file
 
-```bash
-# development
+Configure your .env file following this template:
+```
+PORT=[Local host port number, e.g. 3000]
+NODE_ENV=development
+DATABASE_HOST=[Database host, e.g. localhost]
+DATABASE_USER=[Database username, e.g. postgres]
+DATABASE_PORT=[Database port, e.g. 5432]
+DATABASE_PASSWORD=[Database password, e.g. 123456]
+DATABASE_NAME=[Database name, e.g. study_gem]
+PG_URL=[Public host database connection URL]
+JWT_CONSTANT=[Json Web Token secret]
+REDIS_HOST=[Redis host link, e.g. singapore-redis.render.com]
+REDIS_PORT=[Redis host port, e.g. 6379]
+REDIS_USERNAME=[Redis username, e.g. violet-abc123]
+REDIS_PASSWORD=[Redis password]
+GOOGLE_CLIENT_ID=[Google Client ID for Google OAuth, e.g. 1234-abcd.apps.googleusercontent.com]
+EMAIL=[Email address to send activation request and new password to user, e.g. example@gmail.com]
+PASS=[[Google app password](https://myaccount.google.com/apppasswords)]
+```
+
+## 3. Create a new database
+
+Open pgAdmin and create a new database with the name matching the `DATABASE_NAME` environment variable you configured earlier.
+
+## 4. Start the application
+
+Run the following command and wait for the terminal to log `connected` and `ready`.
+```
 $ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
 ```
 
-## Run tests
+## 5. Import data
 
-```bash
-# unit tests
-$ npm run test
+Go back to pgAdmin and refresh the database. The tables `users`, `tasks` and `progress` will have been automatically created.
+You can now import the data from the provided csv files onto the tables. Import in order of users > tasks > progress to avoid violating foreign key constraints:
+- Right click the table.
+- Click "Import/Export Data..."
+- On "Filename", select the csv file.
+- Go to "Options" and toggle "Header" on.
+- Go to "Columns" and remove the identity column ("id" for users, "taskId" for tasks, and "progressId" for progress) from the list, as they will be automatically generated.
+- Click "OK" and wait for the process to finish.
 
-# e2e tests
-$ npm run test:e2e
+## 6. Deploy the front-end
 
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Now go to the Front-end repository and follow the instructions there to deploy the Front-end.
