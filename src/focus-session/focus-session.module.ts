@@ -6,16 +6,16 @@ import { User } from 'src/users/entities/user.entity';
 import { FocusSessionController } from './focus-session.controller';
 import { Progress } from './entities/focus-session.entity';
 import { RedisModule } from 'src/redis/redis.module';
+import { OpenAIService } from 'src/openai/openai.service';
 
 @Module({
   controllers: [FocusSessionController],
-  providers: [FocusSessionService],
+  providers: [FocusSessionService, OpenAIService],
   exports: [FocusSessionService],
   imports: [
     TypeOrmModule.forFeature([Task]),
     TypeOrmModule.forFeature([User]),
     TypeOrmModule.forFeature([Progress]),
-    RedisModule
-  ]
+  ],
 })
-export class FocusSessionModule { }
+export class FocusSessionModule {}
