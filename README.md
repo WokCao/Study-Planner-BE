@@ -34,7 +34,7 @@ REDIS_USERNAME=[Redis username, e.g. violet-abc123]
 REDIS_PASSWORD=[Redis password]
 GOOGLE_CLIENT_ID=[Google Client ID for Google OAuth, e.g. 1234-abcd.apps.googleusercontent.com]
 EMAIL=[Email address to send activation request and new password to user, e.g. example@gmail.com]
-PASS=[[Google app password](https://myaccount.google.com/apppasswords)]
+PASS=[Google app password, configure here: https://myaccount.google.com/apppasswords]
 ```
 
 ## 3. Create a new database
