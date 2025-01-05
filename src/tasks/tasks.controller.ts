@@ -24,7 +24,7 @@ export class TasksController {
                 message: 'Task has been successfully created'
             }
         } catch (error: any) {
-            if (error.statusCode === 409) {
+            if (error.statusCode === 401) {
                 throw new UnauthorizedException(error.message);
             } else if (error.statusCode === 500) {
                 throw new InternalServerErrorException(error.message);
@@ -36,7 +36,7 @@ export class TasksController {
 
     @UseGuards(AuthenGuard)
     @Post('in-interval')
-    async findTasksInInterval(@Body() body, @Req() req: any) {
+    async findTasksInInterval(@Body() body: any, @Req() req: any) {
         try {
             const startDate = new Date(body.startDate);
             const endDate = new Date(body.endDate);
@@ -47,14 +47,18 @@ export class TasksController {
             const localEndDate = new Date(endDate.getTime() + 7 * 60 * 60 * 1000 + 86399000);
             const response = await this.tasksService.findTasksInInterval(req.user.sub, localStartDate, localEndDate);
             return {
-                "data": {
+                data: {
                     response
                 },
-                "statusCode": 200,
-                "message": 'Successfully'
+                statusCode: 200,
+                message: 'Successfully'
             }
         } catch (error: any) {
-            throw error;
+            if (error.statusCode === 500) {
+                throw new InternalServerErrorException(error.message);
+            } else {
+                throw new BadRequestException(error.message);
+            }
         }
     }
 
@@ -64,14 +68,18 @@ export class TasksController {
         try {
             const response = await this.tasksService.findAll(req.user.sub);
             return {
-                "data": {
+                data: {
                     response
                 },
-                "statusCode": 200,
-                "message": 'Successfully'
+                statusCode: 200,
+                message: 'Successfully'
             }
         } catch (error: any) {
-            throw error;
+            if (error.statusCode === 500) {
+                throw new InternalServerErrorException(error.message);
+            } else {
+                throw new BadRequestException(error.message);
+            }
         }
     }
 
@@ -81,14 +89,18 @@ export class TasksController {
         try {
             const response = await this.tasksService.findRecent(req.user.sub);
             return {
-                "data": {
+                data: {
                     response
                 },
-                "statusCode": 200,
-                "message": 'Successfully'
+                statusCode: 200,
+                message: 'Successfully'
             }
         } catch (error: any) {
-            throw error;
+            if (error.statusCode === 500) {
+                throw new InternalServerErrorException(error.message);
+            } else {
+                throw new BadRequestException(error.message);
+            }
         }
     }
 
@@ -105,7 +117,11 @@ export class TasksController {
                 message: 'Successfully'
             }
         } catch (error: any) {
-            throw error;
+            if (error.statusCode === 500) {
+                throw new InternalServerErrorException(error.message);
+            } else {
+                throw new BadRequestException(error.message);
+            }
         }
     }
 
@@ -122,7 +138,11 @@ export class TasksController {
                 message: 'Successfully'
             }
         } catch (error: any) {
-            throw error;
+            if (error.statusCode === 500) {
+                throw new InternalServerErrorException(error.message);
+            } else {
+                throw new BadRequestException(error.message);
+            }
         }
     }
 
@@ -132,14 +152,18 @@ export class TasksController {
         try {
             const response = await this.tasksService.findThisMonth(req.user.sub, page);
             return {
-                "data": {
+                data: {
                     response
                 },
-                "statusCode": 200,
-                "message": 'Successfully'
+                statusCode: 200,
+                message: 'Successfully'
             }
         } catch (error: any) {
-            throw error;
+            if (error.statusCode === 500) {
+                throw new InternalServerErrorException(error.message);
+            } else {
+                throw new BadRequestException(error.message);
+            }
         }
     }
 
@@ -149,14 +173,18 @@ export class TasksController {
         try {
             const response = await this.tasksService.findOtherMonths(req.user.sub, page);
             return {
-                "data": {
+                data: {
                     response
                 },
-                "statusCode": 200,
-                "message": 'Successfully'
+                statusCode: 200,
+                message: 'Successfully'
             }
         } catch (error: any) {
-            throw error;
+            if (error.statusCode === 500) {
+                throw new InternalServerErrorException(error.message);
+            } else {
+                throw new BadRequestException(error.message);
+            }
         }
     }
 
@@ -167,15 +195,19 @@ export class TasksController {
             const task: Task = await this.tasksService.findOne(taskId, req.user.sub);
             const { user, updatedAt, createdAt, ...response } = task;
             return {
-                "data": {
+                data: {
                     response,
-                    "ref": `https://study-planner-be.onrender.com/api/v1/tasks/${taskId}`
+                    ref: `https://study-planner-be.onrender.com/api/v1/tasks/${taskId}`
                 },
-                "statusCode": 200,
-                "message": 'Successfully'
+                statusCode: 200,
+                message: 'Successfully'
             }
         } catch (error: any) {
-            throw new NotFoundException(`Task with id=${taskId} can't be found for the specified user`);
+            if (error.statusCode === 500) {
+                throw new InternalServerErrorException(error.message);
+            } else {
+                throw new BadRequestException(error.message);
+            }
         }
     }
 
@@ -185,14 +217,20 @@ export class TasksController {
         try {
             const response = await this.tasksService.update(taskId, req.user.sub, updateTaskDto);
             return {
-                "data": {
+                data: {
                     response
                 },
-                "statusCode": 200,
-                "message": 'Successfully'
+                statusCode: 200,
+                message: 'Successfully'
             }
         } catch (error: any) {
-            throw error;
+            if (error.statusCode === 404) {
+                throw new NotFoundException(error.message);
+            } else if (error.statusCode === 500) {
+                throw new InternalServerErrorException(error.message);
+            } else {
+                throw new BadRequestException(error.message);
+            }
         }
     }
 
@@ -202,11 +240,17 @@ export class TasksController {
         try {
             await this.tasksService.delete(taskId, req.user.sub);
             return {
-                "statusCode": 200,
-                "message": 'Task with id=${taskId} has been successfully deleted'
+                statusCode: 200,
+                message: `Task with id=${taskId} has been successfully deleted`
             }
         } catch (error: any) {
-            throw error;
+            if (error.statusCode === 404) {
+                throw new NotFoundException(error.message);
+            } else if (error.statusCode === 500) {
+                throw new InternalServerErrorException(error.message);
+            } else {
+                throw new BadRequestException(error.message);
+            }
         }
     }
 }

@@ -1,6 +1,9 @@
-import { IsEnum, IsNotEmpty } from "class-validator";
+import { IsEnum, IsNotEmpty, IsNumber } from "class-validator";
 
 export class UpdateFocusSessionDto {
+    @IsNumber()
+    taskId: number;
+    
     @IsNotEmpty()
     completionTime: number;
 

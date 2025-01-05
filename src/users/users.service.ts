@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException, NotImplementedException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcryptjs';
@@ -8,8 +8,9 @@ import { User } from './entities/user.entity';
 import { LoginUserDto } from './dto/login-user.dto';
 import * as nodemailer from 'nodemailer';
 import { JwtService } from '@nestjs/jwt';
-import * as dotenv from 'dotenv';
 import { randomBytes } from 'crypto';
+import { RedisService } from 'src/redis/redis.service';
+import * as dotenv from 'dotenv';
 dotenv.config();
 
 @Injectable()
@@ -17,7 +18,8 @@ export class UsersService {
     constructor(
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
-        private jwtService: JwtService,
+        private readonly jwtService: JwtService,
+        private readonly redisService: RedisService
     ) { }
 
     async login(loginUserDto: LoginUserDto): Promise<User> {
@@ -86,6 +88,9 @@ export class UsersService {
             await this.sendActivationEmail(email, activationToken, 0);
             return await this.userRepository.save(newUser);
         } catch (error: any) {
+            if (error instanceof NotImplementedException) {
+                throw new NotImplementedException(error.message);
+            }
             throw new InternalServerErrorException('Database errors occur. Please try again...');
         }
     }
@@ -124,9 +129,9 @@ export class UsersService {
             await transporter.sendMail(mailOptions);
         } catch (error: any) {
             if (error.responseCode === 550 || error.code === 'EENVELOPE') {
-                throw new Error('Invalid email address provided.');
+                throw new NotImplementedException('Invalid email address provided.');
             } else {
-                throw new Error(`An error occurred while sending the ${type === 0 ? 'activation' : 'reset-password'} email.`);
+                throw new NotImplementedException(`An error occurred while sending the ${type === 0 ? 'activation' : 'reset-password'} email.`);
             }
         }
     }
@@ -182,13 +187,17 @@ export class UsersService {
     }
 
     async findOne(id: number): Promise<User> {
-        return await this.userRepository.findOne({ where: { id } });
+        try {
+            return await this.userRepository.findOne({ where: { id } });
+        } catch (error: any) {
+            throw new InternalServerErrorException(error.message);
+        }
     }
 
     async update(id: number, updateUserDto: UpdateUserDto) {
         const user = await this.findOne(id);
         if (!user) {
-            throw new NotFoundException(`User can't be found`);
+            throw new UnauthorizedException(`User can't be found`);
         }
 
         if (updateUserDto.password) {
@@ -208,11 +217,29 @@ export class UsersService {
         try {
             return await this.userRepository.save(result);
         } catch (error) {
-            throw new ForbiddenException(`Error updating user: ${error.message}`);
+            throw new InternalServerErrorException(`Error updating user: ${error.message}`);
         }
     }
 
     async remove(id: number): Promise<void> {
-        await this.userRepository.delete({ id });
+        try {
+            await this.userRepository.delete({ id });
+        } catch (error: any) {
+            throw new InternalServerErrorException(error.message);
+        }
+    }
+
+    async logout(token: string): Promise<void> {
+        const decoded = this.jwtService.decode(token) as any;
+        const ttl = Math.floor((decoded.exp * 1000 - Date.now()) / 1000);
+        if (ttl > 0) {
+            try {
+                await this.redisService.blacklistToken(token, ttl);
+            } catch (error: any) {
+                throw new NotImplementedException(error.message);
+            }
+        } else {
+            throw new UnauthorizedException('Invalid token');
+        }
     }
 }

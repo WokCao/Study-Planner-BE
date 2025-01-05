@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity'
 import { CloudStorageService } from 'src/cloud-storage/cloud-storage.service';
 import { CloudStorageModule } from 'src/cloud-storage/cloud-storage.module';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   controllers: [UsersController],
@@ -12,7 +13,8 @@ import { CloudStorageModule } from 'src/cloud-storage/cloud-storage.module';
   exports: [UsersService],
   imports: [
     TypeOrmModule.forFeature([User]), // Import orm module in order to use entity
-    CloudStorageModule
+    CloudStorageModule,
+    RedisModule
   ]
 })
 export class UsersModule {}
