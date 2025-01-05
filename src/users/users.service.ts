@@ -112,7 +112,7 @@ export class UsersService {
             from: process.env.EMAIL,
             to: email,
             subject: 'StudyGem: Activate your account',
-            html: `<p>Click <a href="http://localhost:3000/api/v1/users/activate/${token}">here</a> to activate your account.</p>`,
+            html: `<p>Click <a href="${process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : process.env.BE_HOST}/api/v1/users/activate/${token}">here</a> to activate your account.</p>`,
         };
 
         if (type === 1) {

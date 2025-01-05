@@ -44,7 +44,7 @@ export class UsersController {
     async activateAccount(@Param('token') token: string) {
         try {
             await this.usersService.activateAccount(token);
-            return '<p>Your account has been activated successfully. Back to <a href="http://localhost:5173/Study-Planner-FE/login">Login</a> page.</p>'
+            return `<p>Your account has been activated successfully. Back to <a href="${process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : process.env.FE_HOST}/Study-Planner-FE/login">Login</a> page.</p>`
         } catch (error: any) {
             if (error.statusCode === 404) {
                 throw new NotFoundException(error.message);
