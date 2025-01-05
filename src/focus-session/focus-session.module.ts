@@ -5,6 +5,7 @@ import { Task } from 'src/tasks/entities/task.entity';
 import { User } from 'src/users/entities/user.entity';
 import { FocusSessionController } from './focus-session.controller';
 import { Progress } from './entities/focus-session.entity';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   controllers: [FocusSessionController],
@@ -13,7 +14,8 @@ import { Progress } from './entities/focus-session.entity';
   imports: [
     TypeOrmModule.forFeature([Task]),
     TypeOrmModule.forFeature([User]),
-    TypeOrmModule.forFeature([Progress])
+    TypeOrmModule.forFeature([Progress]),
+    RedisModule
   ]
 })
 export class FocusSessionModule { }

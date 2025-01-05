@@ -172,7 +172,7 @@ export class UsersController {
         }
     }
 
-    @Post('logout')
+    @Get('logout')
     async logout(
         @Headers('Authorization') authHeader: string,
     ): Promise<{ statusCode: number; message: string }> {
