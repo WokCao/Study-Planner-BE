@@ -176,6 +176,9 @@ export class UsersController {
     async logout(
         @Headers('Authorization') authHeader: string,
     ): Promise<{ statusCode: number; message: string }> {
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            throw new BadRequestException('Authorization header is missing or malformed');
+        }
         const token = authHeader.replace('Bearer ', '');
         try {
             await this.usersService.logout(token);
