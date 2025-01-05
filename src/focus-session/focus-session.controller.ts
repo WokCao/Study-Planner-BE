@@ -150,14 +150,12 @@ export class FocusSessionController {
 		}
 	}
 
-  @Get('feedback')
-	async getFeedback(
-		@Query('year') year: number,
-		@Param('userId') userId: number,
-	) {
+	@UseGuards(AuthenGuard)
+  @Get('feedback/:year')
+	async getFeedback(@Param('year') year: number, @Req() req: any) {
 		try {
 			// Fetch focus session data for the user and year
-			const focusSessions = await this.focusSessionService.getAllFocusSession(year, userId);
+			const focusSessions = await this.focusSessionService.getAllFocusSession(year, req.user.sub);
 
 			if (!focusSessions || focusSessions.length === 0) {
 				throw new InternalServerErrorException('No focus session data available for analysis.');
@@ -175,11 +173,11 @@ export class FocusSessionController {
 				You are an AI assistant analyzing user focus session data. Provide feedback based on these inputs:
 				1. Monthly completion times for tasks.
 				2. Priority levels of completed tasks.
-				
+
 				Identify patterns and provide feedback:
 				- Warnings: Highlight any concerning trends (e.g., neglect of high-priority tasks, inconsistent progress).
 				- Suggestions: Recommend ways to improve efficiency, balance priorities, or adjust goals.
-				
+
 				Input data (JSON):
 				${JSON.stringify(formattedData)}
 			`;
@@ -188,12 +186,23 @@ export class FocusSessionController {
 			const feedback = await this.openAIService.getLLMFeedback(prompt);
 
 			return {
-				success: true,
-				feedback,
+				data: {
+					feedback,
+					ref: `https://study-planner-be.onrender.com/api/v1/focus-session/feedback/${year}`
+				},
+				statusCode: 200,
+				message: 'Successfully'
 			};
 		} catch (error: any) {
-			console.error('Error in getFeedback:', error);
-			throw new InternalServerErrorException(error.message);
+			if (error.statusCode === 401) {
+				throw new UnauthorizedException(error.message);
+			} else if (error.statusCode === 404) {
+				throw new NotFoundException(error.message);
+			} else if (error.statusCode === 500) {
+				throw new InternalServerErrorException(error.message);
+			} else {
+				throw new BadRequestException(error.message);
+			}
 		}
 	}
 }
