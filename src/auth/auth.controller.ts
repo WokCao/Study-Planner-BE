@@ -1,30 +1,20 @@
 import {
     Controller,
-    Request,
-    Get,
-    UseGuards,
     Body,
-    HttpCode,
-    HttpStatus,
     InternalServerErrorException,
     Post,
-    Req,
-    UnauthorizedException,
-    Headers
+    UnauthorizedException
 } from '@nestjs/common';
-import { AuthenGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 import { LoginUserDto } from 'src/users/dto/login-user.dto';
-import { AuthGuard } from '@nestjs/passport';
-import * as dotenv from 'dotenv';
 import axios from 'axios';
+import * as dotenv from 'dotenv';
 dotenv.config();
 
 @Controller('api/v1/auth')
 export class AuthController {
     constructor(private authService: AuthService) { }
 
-    @HttpCode(HttpStatus.OK)
     @Post('login')
     async login(
         @Body() signInDto: LoginUserDto,
@@ -47,29 +37,6 @@ export class AuthController {
                 throw new InternalServerErrorException(error.message);
             }
         }
-    }
-
-    @HttpCode(HttpStatus.OK)
-    @Post('logout')
-    async logout(
-        @Headers('Authorization') authHeader: string,
-    ): Promise<{ statusCode: number; message: string }> {
-        const token = authHeader.replace('Bearer ', '');
-        try {
-            await this.authService.logout(token);
-            return {
-                statusCode: 200,
-                message: 'Logged out successfully',
-            };
-        } catch (error: any) {
-            throw new InternalServerErrorException('Failed to log out! Try again.');
-        }
-    }
-
-    @UseGuards(AuthenGuard)
-    @Get('profile')
-    getProfile(@Request() req) {
-        return req.user;
     }
 
     @Post('googleInfo')

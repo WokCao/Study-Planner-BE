@@ -10,16 +10,16 @@ import { PassportModule } from '@nestjs/passport';
 dotenv.config();
 
 @Module({
-  imports: [UsersModule,
-    JwtModule.register({
-      global: true,
-      secret: process.env.JWT_CONSTANT,
-      signOptions: { expiresIn: '3600s' },
-    }),
-    RedisModule,
-    PassportModule.register({ defaultStrategy: 'google' })
-  ],
-  controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy]
+    imports: [UsersModule,
+        JwtModule.register({
+            global: true,
+            secret: process.env.JWT_CONSTANT,
+            signOptions: { expiresIn: '3600s' },
+        }),
+        RedisModule,
+        PassportModule.register({ defaultStrategy: 'google' })
+    ],
+    controllers: [AuthController],
+    providers: [AuthService, GoogleStrategy]
 })
-export class AuthModule {}
+export class AuthModule { }
