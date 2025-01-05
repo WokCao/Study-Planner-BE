@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateFocusSessionDto } from './dto/create-focus-session.dto';
 import { Progress } from './entities/focus-session.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -15,13 +15,13 @@ export class FocusSessionService {
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
         @InjectRepository(Task)
-        private readonly taskRepository: Repository<Task>,
+        private readonly taskRepository: Repository<Task>
     ) { }
 
     async createFocusSession(createFocusSessionDto: CreateFocusSessionDto, userId: number): Promise<any> {
         const user = await this.userRepository.findOne({ where: { id: userId } });
         if (!user) {
-            throw new NotFoundException(`User not found`);
+            throw new UnauthorizedException(`User not found`);
         }
 
         const task = await this.taskRepository.findOne({ where: { taskId: createFocusSessionDto.taskId } });
@@ -55,19 +55,19 @@ export class FocusSessionService {
         }
     }
 
-    async updateFocusSession(taskId: number, updateFocusSession: UpdateFocusSessionDto, userId: number) {
+    async updateFocusSession(updateFocusSession: UpdateFocusSessionDto, userId: number) {
         const user = await this.userRepository.findOne({ where: { id: userId } });
         if (!user) {
-            throw new NotFoundException(`User not found`);
+            throw new UnauthorizedException(`User not found`);
         }
 
-        const task = await this.taskRepository.findOne({ where: { taskId } });
+        const task = await this.taskRepository.findOne({ where: { taskId: updateFocusSession.taskId } });
         if (!task) {
             throw new NotFoundException('Task not found');
         }
 
         try {
-            const focusSession = await this.getFocusSession(taskId, userId);
+            const focusSession = await this.getFocusSession(updateFocusSession.taskId, userId);
             const timeBefore = focusSession.completionTime;
 
             const plusTime: UpdateFocusSessionDto = {
@@ -81,20 +81,22 @@ export class FocusSessionService {
         }
     }
 
-    async getFocusSession(taskId: number, userId: number) {
+    async getFocusSession(focusSessionId: number, userId: number) {
         const user = await this.userRepository.findOne({ where: { id: userId } });
         if (!user) {
-            throw new NotFoundException(`User not found`);
-        }
-
-        const task = await this.taskRepository.findOne({ where: { taskId } });
-        if (!task) {
-            throw new NotFoundException('Task not found');
+            throw new UnauthorizedException(`User not found`);
         }
 
         try {
-            return await this.focusSessionRepository.findOne({ where: { task: { taskId }, user: { id: userId } } });
+            const session = await this.focusSessionRepository.findOne({ where: { progressId: focusSessionId } });
+            if (!session) {
+                throw new NotFoundException("Session doesn't exist");
+            }
+            return session;
         } catch (error: any) {
+            if (error instanceof NotFoundException) {
+                throw new NotFoundException(error.message);
+            }
             throw new InternalServerErrorException(error.message);
         }
     }
@@ -102,7 +104,7 @@ export class FocusSessionService {
     async getAllFocusSession(year: number, userId: number) {
         const user = await this.userRepository.findOne({ where: { id: userId } });
         if (!user) {
-            throw new NotFoundException(`User not found`);
+            throw new UnauthorizedException(`User not found`);
         }
 
         const currentDate = new Date();
@@ -126,7 +128,6 @@ export class FocusSessionService {
 
             return data;
         } catch (error: any) {
-            console.log(error)
             throw new InternalServerErrorException(error.message);
         }
     }
