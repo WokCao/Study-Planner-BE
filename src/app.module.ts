@@ -22,10 +22,15 @@ import { OpenaiModule } from './openai/openai.module';
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      url: process.env.PG_URL,
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      host: process.env.DATABASE_HOST,
+      port: parseInt(process.env.DATABASE_PORT, 10) || 5432,
+      username: process.env.DATABASE_USER,
+      password: process.env.DATABASE_PASSWORD,
+      database: process.env.DATABASE_NAME,
+      // url: process.env.PG_URL,
+      // ssl: {
+      //   rejectUnauthorized: false,
+      // },
       entities: [User, Task, Progress],
       autoLoadEntities: true,
       synchronize: false,
