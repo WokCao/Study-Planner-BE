@@ -56,14 +56,14 @@ export class OpenAIService {
                         Provide warnings about overly tight schedules and suggestions for better prioritization and balance.
                         Always format your response as:
                         Warnings:
-                        Item 1
-                        Item 2
-                        Item 3
+                        - Item 1
+                        - Item 2
+                        - Item 3
 
                         Suggestions:
-                        Item 1
-                        Item 2
-                        Item 3`
+                        - Item 1
+                        - Item 2
+                        - Item 3`
                     }, 
                     {
                         role: 'user',
