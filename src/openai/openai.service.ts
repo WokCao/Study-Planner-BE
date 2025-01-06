@@ -36,10 +36,10 @@ export class OpenAIService {
                         Identifying areas where the user is excelling.
                         Suggesting subjects or tasks that may need more attention.
                         Offering motivational feedback to encourage consistency and improvement.
-                        
+
                         Always format your response as:
                         Strengths:
-                        Need improvement:
+                        Need improvements:
                         Motivational quotes:`
                     },
                     { 
