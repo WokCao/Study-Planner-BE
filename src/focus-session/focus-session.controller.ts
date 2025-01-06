@@ -61,7 +61,7 @@ export class FocusSessionController {
     }
 
     @UseGuards(AuthenGuard)
-    @Put('')
+    @Put()
     async updateFocusSession(@Body(new ValidationPipe()) updateFocusSession: UpdateFocusSessionDto, @Req() req: any) {
         try {
             const updatedFocusSession = await this.focusSessionService.updateFocusSession(updateFocusSession, req.user.sub);

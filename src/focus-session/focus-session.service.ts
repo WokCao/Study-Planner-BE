@@ -67,7 +67,10 @@ export class FocusSessionService {
         }
 
         try {
-            const focusSession = await this.getFocusSession(updateFocusSession.taskId, userId);
+            const focusSession = await this.focusSessionRepository.findOne({ where: { task: { taskId: updateFocusSession.taskId }, user: { id: userId } } });
+            if (!focusSession) {
+                throw new NotFoundException("Session doesn't exist");
+            }
             const timeBefore = focusSession.completionTime;
 
             const plusTime: UpdateFocusSessionDto = {
@@ -77,6 +80,9 @@ export class FocusSessionService {
             const updatedFocusSession = this.focusSessionRepository.merge(focusSession, plusTime);
             return await this.focusSessionRepository.save(updatedFocusSession);
         } catch (error: any) {
+            if (error instanceof NotFoundException) {
+                throw new NotFoundException(error.message);
+            }
             throw new InternalServerErrorException(error.message);
         }
     }
