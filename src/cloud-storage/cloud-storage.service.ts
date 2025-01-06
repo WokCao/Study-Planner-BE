@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotImplementedException } from '@nestjs/common';
 import { Storage } from '@google-cloud/storage';
 
 @Injectable()
@@ -41,13 +41,17 @@ export class CloudStorageService {
     }
 
     async deleteImage(url: string): Promise<void> {
-        const urlComponents = url.split('/');
-        const fileName = urlComponents[urlComponents.length - 1];
-        const file = this.storage.bucket(this.bucketName).file(fileName);
-        try {
-            await file.delete();
-        } catch (error) {
-            throw new Error(`Unable to delete file: ${fileName}`);
+        if (url) {
+            const urlComponents = url.split('/');
+            const fileName = urlComponents[urlComponents.length - 1];
+            const file = this.storage.bucket(this.bucketName).file(fileName);
+            if (file.exists()) {
+                try {
+                    await file.delete();
+                } catch (error) {
+                    throw new NotImplementedException(`Unable to delete file: ${fileName}`);
+                }
+            }
         }
     }
 }
