@@ -196,7 +196,7 @@ export class TasksController {
     @Post('analyze')
     async getAnalysisFromAI(@Body() data: any, @Req() req: any) {
         try {
-            const analysis = this.openaiService.getAnalysisFromAI(data);
+            const analysis = await this.openaiService.getAnalysisFromAI(JSON.stringify(data));
             return {
                 data: analysis,
                 statusCode: 200,
