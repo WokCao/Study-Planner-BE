@@ -19,26 +19,46 @@ export class OpenAIService {
      * @param prompt - The prompt to send to OpenAI
      * @returns A string containing the feedback
      */
-    async getLLMFeedback(prompt: string): Promise<string> {
+    async getLLMFeedback(data: string): Promise<string> {
         try {
             const response = await this.openai.chat.completions.create({
-                model: process.env.OPENAI_MODEL || 'gpt-4',
-                messages: [
-                    { role: 'system', content: 'You are an AI assistant providing feedback on user focus sessions.' },
-                    { role: 'user', content: prompt },
-                ],
+                model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
                 max_tokens: 500,
                 temperature: 0.7,
+                messages: [
+                    { 
+                        role: 'system', 
+                        content: `
+                        You are an AI assistant analyzing user focus session data. Provide feedback based on these inputs:
+                        1. Monthly completion times for tasks.
+                        2. Priority levels of completed tasks.
+
+                        Identifying areas where the user is excelling.
+                        Suggesting subjects or tasks that may need more attention.
+                        Offering motivational feedback to encourage consistency and improvement.
+                        
+                        Always format your response as:
+                        Strengths:
+                        Need improvement:
+                        Motivational quotes:`
+                    },
+                    { 
+                        role: 'user', 
+                        content: `Analyze my focus session and provide feedback. Here is the data in JSON format:\n\n${data}` 
+                    },
+                ],
             });
 
-            if (!response.choices || response.choices.length === 0 || !response.choices[0].message?.content) {
-                throw new Error('Invalid response from OpenAI API.');
+            if (!response) {
+                throw new BadRequestException('No response from the LLM API. Please try again');
             }
 
             return response.choices[0].message.content.trim();
         } catch (error: any) {
-            console.error('Error in LLM API call:', error);
-            throw new InternalServerErrorException('Failed to retrieve feedback from the OpenAI API.');
+            if (error instanceof BadRequestException) {
+                throw new BadRequestException(error.message);
+            }
+            throw new InternalServerErrorException(error.message);
         }
     }
 

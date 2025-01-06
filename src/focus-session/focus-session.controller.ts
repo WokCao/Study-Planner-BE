@@ -167,28 +167,11 @@ export class FocusSessionController {
                 totalCompletionTime: session.totalCompletionTime,
             }));
 
-            // Prompt for the LLM
-            const prompt = `
-				You are an AI assistant analyzing user focus session data. Provide feedback based on these inputs:
-				1. Monthly completion times for tasks.
-				2. Priority levels of completed tasks.
-
-				Identify patterns and provide feedback:
-				- Warnings: Highlight any concerning trends (e.g., neglect of high-priority tasks, inconsistent progress).
-				- Suggestions: Recommend ways to improve efficiency, balance priorities, or adjust goals.
-
-				Input data (JSON):
-				${JSON.stringify(formattedData)}
-			`;
-
             // Send data to the LLM and retrieve feedback
-            const feedback = await this.openAIService.getLLMFeedback(prompt);
+            const feedback = await this.openAIService.getLLMFeedback(JSON.stringify(formattedData));
 
             return {
-                data: {
-                    feedback,
-                    ref: `https://study-planner-be.onrender.com/api/v1/focus-session/feedback/${year}`
-                },
+                data: feedback,
                 statusCode: 200,
                 message: 'Successfully'
             };
