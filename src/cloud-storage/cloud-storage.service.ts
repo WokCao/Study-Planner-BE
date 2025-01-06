@@ -1,4 +1,4 @@
-import { Injectable, NotImplementedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotImplementedException } from '@nestjs/common';
 import { Storage } from '@google-cloud/storage';
 
 @Injectable()
@@ -44,13 +44,15 @@ export class CloudStorageService {
         if (url) {
             const urlComponents = url.split('/');
             const fileName = urlComponents[urlComponents.length - 1];
-            const file = this.storage.bucket(this.bucketName).file(fileName);
-            if (file.exists()) {
-                try {
+            try {
+                const file = this.storage.bucket(this.bucketName).file(fileName);
+                const [exists] = await file.exists();
+
+                if (exists) {
                     await file.delete();
-                } catch (error) {
-                    throw new NotImplementedException(`Unable to delete file: ${fileName}`);
                 }
+            } catch (error: any) {
+                throw new InternalServerErrorException(`Unable to delete file: ${fileName}`);
             }
         }
     }
