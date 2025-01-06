@@ -15,7 +15,7 @@ import { OpenaiModule } from 'src/openai/openai.module';
 		TypeOrmModule.forFeature([Task]),
         TypeOrmModule.forFeature([User]), // Import orm module in order to use entity,
 		RedisModule,
-        OpenaiModule
+		OpenaiModule
 	]
 })
 export class TasksModule {}
