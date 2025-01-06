@@ -4,10 +4,14 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
 import { AuthenGuard } from '../auth/auth.guard';
+import { OpenAIService } from 'src/openai/openai.service';
 
 @Controller('api/v1/tasks')
 export class TasksController {
-    constructor(private readonly tasksService: TasksService) { }
+    constructor(
+        private readonly tasksService: TasksService,
+        private readonly openaiService: OpenAIService
+    ) { }
 
     @UseGuards(AuthenGuard)
     @Post()
@@ -176,6 +180,25 @@ export class TasksController {
                 data: {
                     response
                 },
+                statusCode: 200,
+                message: 'Successfully'
+            }
+        } catch (error: any) {
+            if (error.statusCode === 500) {
+                throw new InternalServerErrorException(error.message);
+            } else {
+                throw new BadRequestException(error.message);
+            }
+        }
+    }
+
+    @UseGuards(AuthenGuard)
+    @Post('analyze')
+    async getAnalysisFromAI(@Body() data: any, @Req() req: any) {
+        try {
+            const analysis = this.openaiService.getAnalysisFromAI(data);
+            return {
+                data: analysis,
                 statusCode: 200,
                 message: 'Successfully'
             }
